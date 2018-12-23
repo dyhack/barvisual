@@ -1,6 +1,7 @@
 package cn.dyhack.barvisual.app;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -86,7 +87,12 @@ public class ScatterMatrixController {
      * @since 0.0.4
      */
     @RequestMapping(value= "/internet_users",method = {RequestMethod.GET,RequestMethod.POST})
-    public List<InternetUsersCount> getUsersByTimeSplit(@RequestParam(required = true) long startTime,@RequestParam(required = true)long endTime,@RequestParam(required = true)long interval,@RequestParam(required = false) String barIds)
+    public List<InternetUsersCount> getUsersByTimeSplit(
+    		@RequestParam(required = true) long startTime,
+    		@RequestParam(required = true)long endTime,
+    		@RequestParam(required = true)long interval,
+    		@RequestParam(required = false) String barIds,
+    		@RequestParam(required = false) List<Map<Integer,List<long[]>>> ageTime)
     {
         return totalsService.selectAllByTimeSplit(startTime,endTime,interval,barIds);
     }

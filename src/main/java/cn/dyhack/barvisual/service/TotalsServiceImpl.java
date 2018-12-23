@@ -458,16 +458,17 @@ public class TotalsServiceImpl {
                    }
                    //获取所有的过滤开始时间，结束时间，上网最大年龄，上网最小年龄，上网时长数据
                    tempTotalBytime.add(t);
-                   int count =(int)tempBars.get(t.getBarid()).getCount();
+                   BarRelevantResp bar = tempBars.get(t.getBarid());
                    if(t.getFloatPopulation()==1)
                    {
-                   int float_count = (int)tempBars.get(t.getBarid()).getFloat_count();
-                   tempBars.put(t.getBarid(),new BarRelevantResp(t.getBarid(),++count,++float_count));
-                   }else
-                   {
-                       int float_count = (int)tempBars.get(t.getBarid()).getFloat_count();
-                       tempBars.put(t.getBarid(),new BarRelevantResp(t.getBarid(),++count,float_count));
+	                   bar.setFloat_count(bar.getFloat_count() + 1);
                    }
+                   
+                   if(t.getAge() < 18) {
+                	   bar.setUnder_age_count(bar.getUnder_age_count() + 1);
+                   }
+                   
+                   bar.setCount(bar.getCount() + 1);
                } 
                
                
