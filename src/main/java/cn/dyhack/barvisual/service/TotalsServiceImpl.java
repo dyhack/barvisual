@@ -5,6 +5,7 @@ import static cn.dyhack.barvisual.pojo.tables.Total.TOTAL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
@@ -12,6 +13,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.PostConstruct;
@@ -21,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import ch.qos.logback.core.joran.conditional.IfAction;
 import cn.dyhack.barvisual.dao.TotalMapperImpl;
 import cn.dyhack.barvisual.pojo.tables.pojos.Bars;
 import cn.dyhack.barvisual.pojo.tables.pojos.Total;
@@ -136,6 +139,35 @@ public class TotalsServiceImpl {
     public List<Total> selectBycondition(String filter)
     {
         return totalMapper.selectTotalByCondition(filter);
+    }
+    
+    public List<TotalByTime> filterByCondition(String barIds,long startTime,long endTime,List<Map<Integer,List<Long>>> ageAndTimes)
+    {
+        List<TotalByTime> tempTotalByTime = new ArrayList<>();
+        String barIdArray[] = barIds.split(",");
+        HashSet<String> barIdSet = new HashSet(Arrays.asList(barIdArray));
+        for(TotalByTime t:totals)
+        {
+           if(barIdSet.contains(t.getBarid())&&!(t.getOnlinetime()>=endTime||t.getOfflinetime()<=startTime))
+           {  
+               for(Map<Integer,List<Long>> ageAndTime : ageAndTimes)
+               {
+               for(int age:ageAndTime.keySet())
+               {
+                   if(t.getAge()==age)
+                   {
+                       long minInternetTime = ageAndTime.get(age).get(0);
+                       long maxInternetTime = ageAndTime.get(age).get(1);
+                       if(t.getInternet_time()>=minInternetTime&&t.getInternet_time()<=maxInternetTime)
+                       {
+                           tempTotalByTime.add(t);
+                       }
+                   }
+               }
+              }
+           }
+        }
+        return tempTotalByTime;
     }
     
     /**
