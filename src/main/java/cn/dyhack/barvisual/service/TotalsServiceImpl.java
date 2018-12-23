@@ -11,23 +11,20 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.PostConstruct;
 
-import org.apache.tools.ant.taskdefs.optional.javah.Kaffeh;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestParam;
 
-import ch.qos.logback.core.joran.conditional.IfAction;
 import cn.dyhack.barvisual.dao.TotalMapperImpl;
 import cn.dyhack.barvisual.pojo.tables.pojos.Bars;
 import cn.dyhack.barvisual.pojo.tables.pojos.Total;
 import cn.dyhack.barvisual.resp.AgeAndTimeResp;
+import cn.dyhack.barvisual.resp.AgeCount;
 import cn.dyhack.barvisual.resp.BarRelevantResp;
 import cn.dyhack.barvisual.resp.InternetUsersCount;
 import cn.dyhack.barvisual.resp.TotalByTime;
@@ -464,9 +461,60 @@ public class TotalsServiceImpl {
            return new ArrayList<>(values);
 
     }
-}
-
     
-
-
-
+    
+    /**
+     * 获取网民年龄统计
+     * @return
+     */
+    public List<AgeCount> selectAgeCount(){
+        //TODO: 
+        List<TotalByTime> safeTotals = totals;
+        
+        List<AgeCount> results = new ArrayList<AgeCount>();
+        for(int i = 0; i <= 100; i++) {
+            results.add(new AgeCount(i, 0));
+        }
+        
+        for(TotalByTime total: safeTotals) {
+            int age = total.getAge().intValue();
+            if(age > 100) age = 100;
+            results.get(age).increase();
+        }
+        
+        return results;
+    }
+    
+    /**
+     * 获取网民上网时间分布
+     * @return
+     */
+    
+    public List<Long> queryInternetTimeDistribution(long startTime, long endTime){
+        //TODO: 
+        List<TotalByTime> safeTotals = totals;
+        
+        //7*24段从星期一开始
+        List<Long> results = new ArrayList<Long>();
+        for(int i = 0; i < 7 * 24; i++) {
+            results.add(new Long(0));
+        }
+        
+        Date startDate = new Date(startTime*1000);
+        int startDay = (startDate.getDay() + 6) % 7 + 1;
+        int startHour = startDate.getHours();
+        
+        startTime = startTime - startDate.getMinutes() * 60 - startDate.getSeconds();
+        
+        List<InternetUsersCount> counts = selectAllByTimeSplit(startTime, endTime, 3600, null);
+        
+        int index = (startDay - 1) * 24 + startHour;
+        for (InternetUsersCount count: counts) {
+            results.set(index, results.get(index) + count.getCount());
+            index = (index + 1) % (7 * 24);
+//          System.out.println("====>" + index + ":  " + (Math.floor(index / 24) + 1) + "-" + (index % 24) + "---" + results.get(index) + "---" + count.getCount() );
+        }
+        
+        return results;
+    }
+}
