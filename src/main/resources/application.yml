@@ -1,0 +1,12 @@
+# Spring相关配置
+spring:
+  # mysql 数据源配置
+  datasource:
+    driver-class-name: com.mysql.jdbc.Driver
+    url: jdbc:mysql://10.10.9.112:3306/internet_bar_backup?useSSL=false&characterEncoding=UTF-8
+    username: admin
+    password: '123456'
+    initialization-mode: embedded
+  # jooq 数据库映射工具
+  jooq:
+    sql-dialect: mysql
