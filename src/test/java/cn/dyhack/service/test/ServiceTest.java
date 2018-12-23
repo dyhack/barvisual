@@ -12,6 +12,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+
 import cn.dyhack.barvisual.dao.PersonMapperImpl;
 import cn.dyhack.barvisual.dao.RecordMapperImpl;
 import cn.dyhack.barvisual.dao.TotalMapperImpl;
@@ -214,8 +216,22 @@ public class ServiceTest {
     public void beanTest()
     {   
         List<InternetUserFilterBean> internetUserFilterBeans=new ArrayList<>();
+        List<InternetUserFilterBean> filterBeans=new ArrayList<>();
+        String json = "[{\n" + 
+                "    \"age\": 0,\n" + 
+                "    \"times\": [\n" + 
+                "        [1, 100000],\n" + 
+                "        [1, 100000]\n" + 
+                "    ]\n" + 
+                "}, {\n" + 
+                "    \"age\": 1,\n" + 
+                "    \"times\": [\n" + 
+                "        [1, 100000],\n" + 
+                "        [1, 100000]\n" + 
+                "    ]\n" + 
+                "}]";
+        filterBeans = JacksonConverter.decodeAsList(json, InternetUserFilterBean.class);
         
-       // System.out.println(JacksonConverter.encodeAsString(p));
         for(int i=0;i<=50;i++)
        {    
             InternetUserFilterBean p=new InternetUserFilterBean() ;
@@ -229,7 +245,8 @@ public class ServiceTest {
             p.setTimes(list);
             internetUserFilterBeans.add(p);
        }
-        
+        System.out.println(JacksonConverter.encodeAsString(internetUserFilterBeans));
+        filterBeans = JacksonConverter.decodeAsBean(JacksonConverter.encodeAsString(internetUserFilterBeans), InternetUserFilterBean.class);
         totalsService.filterByCondition("50024210000089,50011710000148",1475467871L, 1476467871L,internetUserFilterBeans);
     }
 }

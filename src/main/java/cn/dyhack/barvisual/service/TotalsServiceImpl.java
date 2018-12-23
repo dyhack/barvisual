@@ -22,12 +22,15 @@ import org.springframework.stereotype.Service;
 
 import cn.dyhack.barvisual.dao.TotalMapperImpl;
 import cn.dyhack.barvisual.pojo.tables.pojos.Bars;
+import cn.dyhack.barvisual.pojo.tables.pojos.ProvinceId;
 import cn.dyhack.barvisual.pojo.tables.pojos.Total;
 import cn.dyhack.barvisual.resp.AgeAndTimeResp;
 import cn.dyhack.barvisual.resp.AgeCount;
 import cn.dyhack.barvisual.resp.BarRelevantResp;
 import cn.dyhack.barvisual.resp.InternetUserFilterBean;
 import cn.dyhack.barvisual.resp.InternetUsersCount;
+import cn.dyhack.barvisual.resp.ProvinceCount;
+import cn.dyhack.barvisual.resp.ProvinceFloatCountResp;
 import cn.dyhack.barvisual.resp.TotalByTime;
 
 @Service("TotalsServiceImpl")
@@ -42,6 +45,9 @@ public class TotalsServiceImpl {
     @Autowired
     PersonsServiceImpl personsService;
     
+    
+    @Autowired
+    ProvinceIdServiceImpl provinceIdService;
     
     private List<TotalByTime> totals;
     
@@ -531,5 +537,38 @@ public class TotalsServiceImpl {
         }
         
         return results;
+    }
+    
+    public HashMap<String,Integer> getFloatPersonByProvince() {
+        ProvinceFloatCountResp provinceFloatCountResp = new ProvinceFloatCountResp();
+        ProvinceCount provinceCount = new ProvinceCount();
+        HashMap<Integer, String> provinceId = new HashMap<>();
+        List<ProvinceId> provinceIds = provinceIdService.getAll();
+        HashMap<String,Integer> idCount = new HashMap<>();
+        for (ProvinceId p : provinceIds) {
+            provinceId.put(p.getProvinceId(), p.getProvinceName());
+            idCount.put(p.getProvinceName(), 0);
+        }
+        for (TotalByTime t : totals) {
+            int count ;
+            int proviId;
+            //如果为流动人口
+            if(t.getFloatPopulation() ==1)
+            {   //获取省份id
+                proviId = Integer.valueOf(t.getAreaid().toString().substring(0,2));
+                if (provinceId.containsKey(proviId)) {
+                    count =  idCount.get(provinceId.get(proviId));
+                    idCount.put(provinceId.get(proviId),++count);
+                }
+                
+            }else
+            {
+                
+                count =  idCount.get(provinceId.get(50));
+               idCount.put(provinceId.get(50), ++count);
+            }
+        }
+        return idCount;
+      
     }
 }
