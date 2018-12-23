@@ -3,7 +3,7 @@ package cn.dyhack.barvisual.resp;
 public class InternetUsersCount {
     
     private long startTime;
-    private long endtTime;
+    private long endTime;
     private long count;
     public InternetUsersCount()
     {
@@ -12,7 +12,7 @@ public class InternetUsersCount {
     public InternetUsersCount(long startTime,long endTime,long count)
     {
         this.startTime = startTime;
-        this.endtTime = endTime;
+        this.endTime = endTime;
         this.count = count;
     }
     public long getStartTime() {
@@ -21,11 +21,11 @@ public class InternetUsersCount {
     public void setStartTime(long startTime) {
         this.startTime = startTime;
     }
-    public long getEndtTime() {
-        return endtTime;
+    public long getEndTime() {
+        return endTime;
     }
-    public void setEndtTime(long endtTime) {
-        this.endtTime = endtTime;
+    public void setEndTime(long endtTime) {
+        this.endTime = endtTime;
     }
     public long getCount() {
         return count;

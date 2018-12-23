@@ -1,6 +1,9 @@
 package cn.dyhack.service.test;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.Ignore;
 import org.junit.Test;
@@ -182,5 +185,20 @@ public class ServiceTest {
            }
        }
     }
-
+    
+    @Test
+    public void buildParam()
+    {
+        List<Long> internetTime = new ArrayList<>();
+        internetTime.add(0,Long.valueOf(10000));
+        internetTime.add(0,Long.valueOf(10000));
+        Map<Integer,List<Long>> test = new HashMap<>();
+        List<Map<Integer,List<Long>>> list = new ArrayList<>();
+        list.add(test);
+        for(int i=0;i<=50;i++)
+        {
+            test.put(i,internetTime);
+        }
+        totalsService.filterByCondition("50024210000089,50011710000148",1475467871, 1476467871,list);
+    }
 }

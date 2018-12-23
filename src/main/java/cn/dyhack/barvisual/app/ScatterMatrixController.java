@@ -17,6 +17,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import cn.dyhack.barvisual.pojo.tables.pojos.Bars;
 import cn.dyhack.barvisual.pojo.tables.pojos.Total;
 import cn.dyhack.barvisual.resp.AgeAndTimeResp;
+import cn.dyhack.barvisual.resp.AgeCount;
 import cn.dyhack.barvisual.resp.BarRelevantResp;
 import cn.dyhack.barvisual.resp.InternetUsersCount;
 import cn.dyhack.barvisual.service.BarsServiceImpl;
@@ -118,8 +119,17 @@ public class ScatterMatrixController {
     }
     
    
-   
-   
+    @RequestMapping(value= "/age-count",method = {RequestMethod.GET,RequestMethod.POST})
+    public List<AgeCount> getAgeCount() {
+        return totalsService.selectAgeCount();
+    }
+    
+    @RequestMapping(value= "/internet-time-distribution",method = {RequestMethod.GET,RequestMethod.POST})
+    public List<Long> queryInternetTimeDistribution(
+    		@RequestParam(required = true) long startTime,
+    		@RequestParam(required = true)long endTime) {
+        return totalsService.queryInternetTimeDistribution(startTime, endTime);
+    }
     
 }
 
