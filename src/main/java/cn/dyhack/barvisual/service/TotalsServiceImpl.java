@@ -18,6 +18,7 @@ import java.util.Set;
 import javax.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.data.redis.RedisProperties.Lettuce;
 import org.springframework.stereotype.Service;
 
 import cn.dyhack.barvisual.dao.TotalMapperImpl;
@@ -142,43 +143,59 @@ public class TotalsServiceImpl {
     public List<TotalByTime> filterByCondition(String barIds,long startTime,long endTime,List<InternetUserFilterBean> ageAndTimes)
     {
         List<TotalByTime> tempTotalByTime = new ArrayList<>();
- 
+        
+        //构建网吧列表
         String barIdArray[] = barIds.split(",");
         HashSet<String> barIdSet = new HashSet(Arrays.asList(barIdArray));
-        /*for (TotalByTime t : totals) {
-            if (barIdSet.contains(t.getBarid()) && !(t.getOnlinetime() >= endTime || t.getOfflinetime() <= startTime)) {
-                for (Map<Integer, List<Long>> ageAndTime : ageAndTimes) {
-                    for (int age : ageAndTime.keySet()) {
-                        if (t.getAge() == age) {
-                            long minInternetTime = ageAndTime.get(age)
-                                    .get(0);
-                            long maxInternetTime = ageAndTime.get(age)
-                                    .get(1);
-                            if (t.getInternet_time() >= minInternetTime && t.getInternet_time() <= maxInternetTime) {
-                                tempTotalByTime.add(t);
-                            }
-                        }
-                    }
-                }
-            }
-        }*/
-        for (InternetUserFilterBean ageAndTime : ageAndTimes) {
-                int age = ageAndTime.getAge();
-                long minInternetTime = ageAndTime.getTimes().get(0)[0];
-                long maxInternetTime = ageAndTime.getTimes().get(0)[1];
-                List<TotalByTime> temptotals = ageMap.get(new Long(age)); 
-                if(temptotals ==null) {continue;}
-                System.out.println(temptotals.size());
-                for (TotalByTime t : temptotals) {
-                    if (barIdSet.contains(t.getBarid())
-                            && !(t.getOnlinetime() >= endTime || t.getOfflinetime() <= startTime)
-                            && t.getInternet_time() >= minInternetTime && t.getInternet_time() <= maxInternetTime) {
-                            tempTotalByTime.add(t);
-                    }
-                }
-            
+        
+        //构建年龄和上网时间MAP
+        HashMap<Integer, InternetUserFilterBean> ageAndTimeMap = new HashMap<Integer, InternetUserFilterBean>();
+        for(InternetUserFilterBean ageAndTime : ageAndTimes) {
+        	ageAndTimeMap.put(ageAndTime.getAge(), ageAndTime);
         }
-        System.out.println(tempTotalByTime.size());
+        
+        
+        for (TotalByTime t : totals) {
+        	//判断网吧是否符合条件
+        	if(barIds.length() > 0) {
+        		if(!barIdSet.contains(t.getBarid())) {
+        			continue;
+        		}
+        	}
+        	
+        	//判断时间是否符合条件
+        	if(startTime != 0 && endTime != 0) {
+        		if(t.getOnlinetime() >= endTime || t.getOfflinetime() <= startTime) {
+        			continue;
+        		}
+        	}
+        	
+        	//判断年龄和上网时长是否符合
+        	if(ageAndTimes.size() > 0) {
+        		int age = t.getAge().intValue();
+            	if(!ageAndTimeMap.containsKey(age)) {
+            		continue;
+            	}
+            	InternetUserFilterBean ageAndTime = ageAndTimeMap.get(age);
+            	
+            	boolean result = false;
+            	for(int[] time : ageAndTime.getTimes()) {
+            		int minTime = time[0];
+            		int maxTime = time[1];
+            		if(t.getInternet_time() > minTime && t.getInternet_time() < maxTime) {
+            			result = true;
+            			break;
+            		}
+            	}
+                if(!result) continue;
+        	}
+        	
+            
+            tempTotalByTime.add(t);
+        }
+       
+        
+        System.out.println("=====>过滤获得:" + tempTotalByTime.size());
         return tempTotalByTime;
     }
     
@@ -258,31 +275,33 @@ public class TotalsServiceImpl {
      * @since 0.0.1
      */
  
-    public List<InternetUsersCount> selectAllByTimeSplit(long startTime,long endTime,long interval,String barIds)
+    public List<InternetUsersCount> selectAllByTimeSplit(long startTime,long endTime,long interval,String barIds, List<InternetUserFilterBean> ageTime)
     {   
+    	List<TotalByTime> tempTotals = filterByCondition(barIds, startTime, endTime, ageTime);
+    	
         System.out.println("===========>进入接口"+ "-----" + new Date().toGMTString());
-        if(barIds == null)
-        {
-            tempTotals = totals;
-        }
-        else
-        {
-            String barIdArray[] = barIds.split(",");
-            HashSet<String> bars = new HashSet<String>();
-            tempTotals = totals;
-            for(String barId : barIdArray){
-                bars.add(barId);
-            }
-            
-            List<TotalByTime> temp = new ArrayList<>();
-            for(TotalByTime t:tempTotals)
-            {
-                if(bars.contains(t.getBarid())) {
-                    temp.add(t);
-                }
-            }
-            tempTotals = temp;
-        }
+//        if(barIds == null)
+//        {
+//            tempTotals = totals;
+//        }
+//        else
+//        {
+//            String barIdArray[] = barIds.split(",");
+//            HashSet<String> bars = new HashSet<String>();
+//            tempTotals = totals;
+//            for(String barId : barIdArray){
+//                bars.add(barId);
+//            }
+//            
+//            List<TotalByTime> temp = new ArrayList<>();
+//            for(TotalByTime t:tempTotals)
+//            {
+//                if(bars.contains(t.getBarid())) {
+//                    temp.add(t);
+//                }
+//            }
+//            tempTotals = temp;
+//        }
         System.out.println("===========>加载完成"+ "-----" + new Date().toGMTString());
         long blocks = new Double(Math.ceil(((endTime - startTime) / (interval * 1.0)))).longValue();
         List<InternetUsersCount> results = new ArrayList<>();
@@ -522,7 +541,7 @@ public class TotalsServiceImpl {
         
         startTime = startTime - startDate.getMinutes() * 60 - startDate.getSeconds();
         
-        List<InternetUsersCount> counts = selectAllByTimeSplit(startTime, endTime, 3600, null);
+        List<InternetUsersCount> counts = selectAllByTimeSplit(startTime, endTime, 3600, null, new ArrayList<InternetUserFilterBean>());
         
         int index = (startDay - 1) * 24 + startHour;
         for (InternetUsersCount count: counts) {

@@ -140,7 +140,7 @@ public class ServiceTest {
     @Ignore
     public void Test1()
     {
-        totalsService.selectAllByTimeSplit(1475467871, 1476467871, 1,null);
+//        totalsService.selectAllByTimeSplit(1475467871, 1476467871, 1,null);
     }
     
     

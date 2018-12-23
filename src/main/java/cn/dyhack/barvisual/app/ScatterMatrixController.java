@@ -1,5 +1,6 @@
 package cn.dyhack.barvisual.app;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -20,9 +21,11 @@ import cn.dyhack.barvisual.pojo.tables.pojos.Total;
 import cn.dyhack.barvisual.resp.AgeAndTimeResp;
 import cn.dyhack.barvisual.resp.AgeCount;
 import cn.dyhack.barvisual.resp.BarRelevantResp;
+import cn.dyhack.barvisual.resp.InternetUserFilterBean;
 import cn.dyhack.barvisual.resp.InternetUsersCount;
 import cn.dyhack.barvisual.service.BarsServiceImpl;
 import cn.dyhack.barvisual.service.TotalsServiceImpl;
+import cn.signit.wesign.lib.common.type.JacksonConverter;
 
 @CrossOrigin(origins = {"http://localhost:8090", "null"})
 @RestController
@@ -92,9 +95,17 @@ public class ScatterMatrixController {
     		@RequestParam(required = true)long endTime,
     		@RequestParam(required = true)long interval,
     		@RequestParam(required = false) String barIds,
-    		@RequestParam(required = false) List<Map<Integer,List<long[]>>> ageTime)
+    		@RequestParam(required = false) String ageTime)
     {
-        return totalsService.selectAllByTimeSplit(startTime,endTime,interval,barIds);
+    	if(barIds == null) {
+    		barIds = "";
+    	}
+    	
+    	List<InternetUserFilterBean> ageTimeT = new ArrayList<InternetUserFilterBean>();
+    	if(ageTime != null) {
+    		ageTimeT = JacksonConverter.decodeAsList(ageTime, InternetUserFilterBean.class);
+    	}
+        return totalsService.selectAllByTimeSplit(startTime,endTime,interval,barIds, ageTimeT);
     }
     
     
