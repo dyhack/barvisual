@@ -138,32 +138,47 @@ public class TotalsServiceImpl {
         return totalMapper.selectTotalByCondition(filter);
     }
     
-    public List<TotalByTime> filterByCondition(String barIds,long startTime,long endTime,List<Map<Integer,List<Long>>> ageAndTimes)
+    public List<TotalByTime> filterByCondition(String barIds,long startTime,long endTime,List<Map<Integer,List<long[]>>> ageAndTimes)
     {
         List<TotalByTime> tempTotalByTime = new ArrayList<>();
+ 
         String barIdArray[] = barIds.split(",");
         HashSet<String> barIdSet = new HashSet(Arrays.asList(barIdArray));
-        for(TotalByTime t:totals)
-        {
-           if(barIdSet.contains(t.getBarid())&&!(t.getOnlinetime()>=endTime||t.getOfflinetime()<=startTime))
-           {  
-               for(Map<Integer,List<Long>> ageAndTime : ageAndTimes)
-               {
-               for(int age:ageAndTime.keySet())
-               {
-                   if(t.getAge()==age)
-                   {
-                       long minInternetTime = ageAndTime.get(age).get(0);
-                       long maxInternetTime = ageAndTime.get(age).get(1);
-                       if(t.getInternet_time()>=minInternetTime&&t.getInternet_time()<=maxInternetTime)
-                       {
-                           tempTotalByTime.add(t);
-                       }
-                   }
-               }
-              }
-           }
+        /*for (TotalByTime t : totals) {
+            if (barIdSet.contains(t.getBarid()) && !(t.getOnlinetime() >= endTime || t.getOfflinetime() <= startTime)) {
+                for (Map<Integer, List<Long>> ageAndTime : ageAndTimes) {
+                    for (int age : ageAndTime.keySet()) {
+                        if (t.getAge() == age) {
+                            long minInternetTime = ageAndTime.get(age)
+                                    .get(0);
+                            long maxInternetTime = ageAndTime.get(age)
+                                    .get(1);
+                            if (t.getInternet_time() >= minInternetTime && t.getInternet_time() <= maxInternetTime) {
+                                tempTotalByTime.add(t);
+                            }
+                        }
+                    }
+                }
+            }
+        }*/
+        for (Map<Integer, List<long[]>> ageAndTime : ageAndTimes) {
+            for (int age : ageAndTime.keySet()) {
+                long minInternetTime = ageAndTime.get(age).get(0)[0];
+                long maxInternetTime = ageAndTime.get(age).get(0)[1];
+                List<TotalByTime> temptotals = ageMap.get(new Long(age)); 
+                System.out.println(temptotals.size());
+                if(temptotals ==null)
+                    continue;
+                for (TotalByTime t : temptotals) {
+                    if (barIdSet.contains(t.getBarid())
+                            && !(t.getOnlinetime() >= endTime || t.getOfflinetime() <= startTime)
+                            && t.getInternet_time() >= minInternetTime && t.getInternet_time() <= maxInternetTime) {
+                            tempTotalByTime.add(t);
+                    }
+                }
+            }
         }
+        System.out.println(tempTotalByTime.size());
         return tempTotalByTime;
     }
     

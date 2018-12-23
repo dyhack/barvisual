@@ -25,7 +25,6 @@ import cn.dyhack.barvisual.service.SusepctsServiceImpl;
 import cn.dyhack.barvisual.service.TotalsServiceImpl;
 @RunWith(SpringRunner.class)
 @SpringBootTest
-@Ignore
 public class ServiceTest {
    
     @Autowired
@@ -189,16 +188,19 @@ public class ServiceTest {
     @Test
     public void buildParam()
     {
-        List<Long> internetTime = new ArrayList<>();
-        internetTime.add(0,Long.valueOf(10000));
-        internetTime.add(0,Long.valueOf(10000));
-        Map<Integer,List<Long>> test = new HashMap<>();
-        List<Map<Integer,List<Long>>> list = new ArrayList<>();
-        list.add(test);
+        List<long[]> internetTime = new ArrayList<>();
+        long[] tempLong = new long[2];
+        tempLong[0] = 100;
+        tempLong[1] = 1000000;
+        internetTime.add(0,tempLong);
+        internetTime.add(1,tempLong);
+        Map<Integer,List<long[]>> test = new HashMap<>();
+        List<Map<Integer,List<long[]>>> list = new ArrayList<>();
         for(int i=0;i<=50;i++)
         {
             test.put(i,internetTime);
         }
-        totalsService.filterByCondition("50024210000089,50011710000148",1475467871, 1476467871,list);
+        list.add(test);
+        totalsService.filterByCondition("50024210000089,50011710000148",1475467871L, 1476467871L,list);
     }
 }
