@@ -26,6 +26,7 @@ import cn.dyhack.barvisual.pojo.tables.pojos.Total;
 import cn.dyhack.barvisual.resp.AgeAndTimeResp;
 import cn.dyhack.barvisual.resp.AgeCount;
 import cn.dyhack.barvisual.resp.BarRelevantResp;
+import cn.dyhack.barvisual.resp.InternetUserFilterBean;
 import cn.dyhack.barvisual.resp.InternetUsersCount;
 import cn.dyhack.barvisual.resp.TotalByTime;
 
@@ -138,7 +139,7 @@ public class TotalsServiceImpl {
         return totalMapper.selectTotalByCondition(filter);
     }
     
-    public List<TotalByTime> filterByCondition(String barIds,long startTime,long endTime,List<Map<Integer,List<long[]>>> ageAndTimes)
+    public List<TotalByTime> filterByCondition(String barIds,long startTime,long endTime,List<InternetUserFilterBean> ageAndTimes)
     {
         List<TotalByTime> tempTotalByTime = new ArrayList<>();
  
@@ -161,14 +162,13 @@ public class TotalsServiceImpl {
                 }
             }
         }*/
-        for (Map<Integer, List<long[]>> ageAndTime : ageAndTimes) {
-            for (int age : ageAndTime.keySet()) {
-                long minInternetTime = ageAndTime.get(age).get(0)[0];
-                long maxInternetTime = ageAndTime.get(age).get(0)[1];
+        for (InternetUserFilterBean ageAndTime : ageAndTimes) {
+                int age = ageAndTime.getAge();
+                long minInternetTime = ageAndTime.getTimes().get(0)[0];
+                long maxInternetTime = ageAndTime.getTimes().get(0)[1];
                 List<TotalByTime> temptotals = ageMap.get(new Long(age)); 
+                if(temptotals ==null) {continue;}
                 System.out.println(temptotals.size());
-                if(temptotals ==null)
-                    continue;
                 for (TotalByTime t : temptotals) {
                     if (barIdSet.contains(t.getBarid())
                             && !(t.getOnlinetime() >= endTime || t.getOfflinetime() <= startTime)
@@ -176,7 +176,7 @@ public class TotalsServiceImpl {
                             tempTotalByTime.add(t);
                     }
                 }
-            }
+            
         }
         System.out.println(tempTotalByTime.size());
         return tempTotalByTime;

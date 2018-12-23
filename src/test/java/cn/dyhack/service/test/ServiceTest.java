@@ -18,11 +18,15 @@ import cn.dyhack.barvisual.dao.TotalMapperImpl;
 import cn.dyhack.barvisual.pojo.tables.pojos.Persons;
 import cn.dyhack.barvisual.pojo.tables.pojos.Records;
 import cn.dyhack.barvisual.pojo.tables.pojos.Total;
+import cn.dyhack.barvisual.resp.InternetUserFilterBean;
+import cn.dyhack.barvisual.resp.InternetUsersCount;
+import cn.dyhack.barvisual.resp.ProvinceFloatCountResp;
 import cn.dyhack.barvisual.service.BarsServiceImpl;
 import cn.dyhack.barvisual.service.PersonsServiceImpl;
 import cn.dyhack.barvisual.service.RecordsServiceImpl;
 import cn.dyhack.barvisual.service.SusepctsServiceImpl;
 import cn.dyhack.barvisual.service.TotalsServiceImpl;
+import cn.signit.wesign.lib.common.type.JacksonConverter;
 @RunWith(SpringRunner.class)
 @SpringBootTest
 public class ServiceTest {
@@ -186,6 +190,7 @@ public class ServiceTest {
     }
     
     @Test
+    @Ignore
     public void buildParam()
     {
         List<long[]> internetTime = new ArrayList<>();
@@ -201,6 +206,30 @@ public class ServiceTest {
             test.put(i,internetTime);
         }
         list.add(test);
-        totalsService.filterByCondition("50024210000089,50011710000148",1475467871L, 1476467871L,list);
+        //totalsService.filterByCondition("50024210000089,50011710000148",1475467871L, 1476467871L,list);
+    }
+    
+    @Test
+
+    public void beanTest()
+    {   
+        List<InternetUserFilterBean> internetUserFilterBeans=new ArrayList<>();
+        
+       // System.out.println(JacksonConverter.encodeAsString(p));
+        for(int i=0;i<=50;i++)
+       {    
+            InternetUserFilterBean p=new InternetUserFilterBean() ;
+            p.setAge(i);
+            int [] time = new int[2];
+            time[0]=1;
+            time[1]=100000;
+            List<int[]> list=new ArrayList<>();
+            list.add(time);
+            list.add(time);
+            p.setTimes(list);
+            internetUserFilterBeans.add(p);
+       }
+        
+        totalsService.filterByCondition("50024210000089,50011710000148",1475467871L, 1476467871L,internetUserFilterBeans);
     }
 }
