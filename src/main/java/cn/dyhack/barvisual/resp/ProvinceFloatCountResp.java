@@ -1,6 +1,8 @@
 package cn.dyhack.barvisual.resp;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * 
@@ -11,14 +13,18 @@ import java.util.HashMap;
  */
 public class ProvinceFloatCountResp {
 
-    private HashMap<String, Integer> provinceFloatCount = new HashMap<>();
+    private List<ProvinceCount> provinceFloatCount = new ArrayList<>();
 
-    public HashMap<String, Integer> getProvinceFloatCount() {
+    public List<ProvinceCount> getProvinceFloatCount() {
         return provinceFloatCount;
     }
 
-    public void setProvinceFloatCount(HashMap<String, Integer> provinceFloatCount) {
+    public void setProvinceFloatCount(List<ProvinceCount> provinceFloatCount) {
         this.provinceFloatCount = provinceFloatCount;
     }
+    
+    
+    
 
+   
 }

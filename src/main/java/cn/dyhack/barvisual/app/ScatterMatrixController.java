@@ -1,9 +1,13 @@
 package cn.dyhack.barvisual.app;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.Resource;
+
+import org.apache.tools.ant.taskdefs.Get;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,6 +27,7 @@ import cn.dyhack.barvisual.resp.AgeCount;
 import cn.dyhack.barvisual.resp.BarRelevantResp;
 import cn.dyhack.barvisual.resp.InternetUserFilterBean;
 import cn.dyhack.barvisual.resp.InternetUsersCount;
+import cn.dyhack.barvisual.resp.ProvinceFloatCountResp;
 import cn.dyhack.barvisual.service.BarsServiceImpl;
 import cn.dyhack.barvisual.service.TotalsServiceImpl;
 import cn.signit.wesign.lib.common.type.JacksonConverter;
@@ -135,6 +140,14 @@ public class ScatterMatrixController {
         return totalsService.getBarRelevantResp(startTime, endTime, minAge, maxAge, maxInternetTime, minInternetTime);
     }
     
+     /**
+      * 获取省份和对应的流动人口数量
+      */
+    @RequestMapping(value = "province-usercount",method = {RequestMethod.GET,RequestMethod.POST})
+    public HashMap<String,Integer>  getFloatPersonByProvince()
+    {
+        return totalsService.getFloatPersonByProvince();
+    }
    
     @RequestMapping(value= "/age-count",method = {RequestMethod.GET,RequestMethod.POST})
     public List<AgeCount> getAgeCount() {

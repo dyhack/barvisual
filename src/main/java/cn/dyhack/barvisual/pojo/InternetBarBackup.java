@@ -9,6 +9,7 @@ import cn.dyhack.barvisual.pojo.tables.BarsCopy;
 import cn.dyhack.barvisual.pojo.tables.FloatPopulation;
 import cn.dyhack.barvisual.pojo.tables.Persons;
 import cn.dyhack.barvisual.pojo.tables.Province;
+import cn.dyhack.barvisual.pojo.tables.ProvinceId;
 import cn.dyhack.barvisual.pojo.tables.Records;
 import cn.dyhack.barvisual.pojo.tables.RecordsPersons;
 import cn.dyhack.barvisual.pojo.tables.RecordsTime;
@@ -40,7 +41,7 @@ import org.jooq.impl.SchemaImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class InternetBarBackup extends SchemaImpl {
 
-    private static final long serialVersionUID = -1263547208;
+    private static final long serialVersionUID = 2020291399;
 
     /**
      * The reference instance of <code>internet_bar_backup</code>
@@ -71,6 +72,11 @@ public class InternetBarBackup extends SchemaImpl {
      * The table <code>internet_bar_backup.province</code>.
      */
     public final Province PROVINCE = cn.dyhack.barvisual.pojo.tables.Province.PROVINCE;
+
+    /**
+     * The table <code>internet_bar_backup.province_id</code>.
+     */
+    public final ProvinceId PROVINCE_ID = cn.dyhack.barvisual.pojo.tables.ProvinceId.PROVINCE_ID;
 
     /**
      * The table <code>internet_bar_backup.records</code>.
@@ -132,6 +138,7 @@ public class InternetBarBackup extends SchemaImpl {
             FloatPopulation.FLOAT_POPULATION,
             Persons.PERSONS,
             Province.PROVINCE,
+            ProvinceId.PROVINCE_ID,
             Records.RECORDS,
             RecordsPersons.RECORDS_PERSONS,
             RecordsTime.RECORDS_TIME,

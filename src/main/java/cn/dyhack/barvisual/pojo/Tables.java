@@ -9,6 +9,7 @@ import cn.dyhack.barvisual.pojo.tables.BarsCopy;
 import cn.dyhack.barvisual.pojo.tables.FloatPopulation;
 import cn.dyhack.barvisual.pojo.tables.Persons;
 import cn.dyhack.barvisual.pojo.tables.Province;
+import cn.dyhack.barvisual.pojo.tables.ProvinceId;
 import cn.dyhack.barvisual.pojo.tables.Records;
 import cn.dyhack.barvisual.pojo.tables.RecordsPersons;
 import cn.dyhack.barvisual.pojo.tables.RecordsTime;
@@ -56,6 +57,11 @@ public class Tables {
      * The table <code>internet_bar_backup.province</code>.
      */
     public static final Province PROVINCE = cn.dyhack.barvisual.pojo.tables.Province.PROVINCE;
+
+    /**
+     * The table <code>internet_bar_backup.province_id</code>.
+     */
+    public static final ProvinceId PROVINCE_ID = cn.dyhack.barvisual.pojo.tables.ProvinceId.PROVINCE_ID;
 
     /**
      * The table <code>internet_bar_backup.records</code>.
