@@ -8,6 +8,7 @@ import java.util.Map;
 import javax.annotation.Resource;
 
 import org.apache.tools.ant.taskdefs.Get;
+import org.jooq.False;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -76,55 +77,54 @@ public class ScatterMatrixController {
     
 
     /**
-     * 查找流动人口，并通过关键字过滤再过滤里面的流动人口
+     * 查找流动人口，并通过关键字过滤再过滤里面的流动人口(前端未使用)
      * @author zhangke
      * @since 0.0.4
      */
-    @RequestMapping(value= "/floating_population",method = {RequestMethod.GET,RequestMethod.POST})
-    public List<Total> getFloatingPopulation(@RequestParam(required = false) String fields, @RequestParam(required = false,defaultValue = "float_population=1")  String filters,
-            @RequestParam(required = false, defaultValue = "0") Integer offset, @RequestParam(required = false, defaultValue = "5555555") Integer limit, @RequestParam(required = false) String sorts) 
-    {
+    @RequestMapping(value = "/floating_population", method = { RequestMethod.GET, RequestMethod.POST })
+    public List<Total> getFloatingPopulation(@RequestParam(required = false) String fields,
+            @RequestParam(required = false, defaultValue = "float_population=1") String filters,
+            @RequestParam(required = false, defaultValue = "0") Integer offset,
+            @RequestParam(required = false, defaultValue = "5555555") Integer limit,
+            @RequestParam(required = false) String sorts) {
         return totalsService.getFloatingPopulation(fields, filters, offset, limit, sorts);
     }
-    
-
     
     /**
      * 通过时间间隔找到不同时间段的上网人数
      * @author zhangke
      * @since 0.0.4
      */
-    @RequestMapping(value= "/internet_users",method = {RequestMethod.GET,RequestMethod.POST})
-    public List<InternetUsersCount> getUsersByTimeSplit(
-    		@RequestParam(required = true) long startTime,
-    		@RequestParam(required = true)long endTime,
-    		@RequestParam(required = true)long interval,
-    		@RequestParam(required = false) String barIds,
-    		@RequestParam(required = false) String ageTime)
-    {
-    	if(barIds == null) {
-    		barIds = "";
-    	}
-    	
-    	List<InternetUserFilterBean> ageTimeT = new ArrayList<InternetUserFilterBean>();
-    	if(ageTime != null) {
-    		ageTimeT = JacksonConverter.decodeAsList(ageTime, InternetUserFilterBean.class);
-    	}
-        return totalsService.selectAllByTimeSplit(startTime,endTime,interval,barIds, ageTimeT);
+    @RequestMapping(value = "/internet_users", method = { RequestMethod.GET, RequestMethod.POST })
+    public List<InternetUsersCount> getUsersByTimeSplit(@RequestParam(required = true) long startTime,
+            @RequestParam(required = true) long endTime, @RequestParam(required = true) long interval,
+            @RequestParam(required = false) String barIds, @RequestParam(required = false) String ageTime) {
+        if (barIds == null) {
+            barIds = "";
+        }
+
+        List<InternetUserFilterBean> ageTimeT = new ArrayList<InternetUserFilterBean>();
+        if (ageTime != null) {
+            ageTimeT = JacksonConverter.decodeAsList(ageTime, InternetUserFilterBean.class);
+        }
+        return totalsService.selectAllByTimeSplit(startTime, endTime, interval, barIds, ageTimeT);
     }
     
-    
     /**
-     * 通过上网最大的时间和分成多少段以及网吧ID
+     * 通过上网最大的时间和分成多少段以及网吧ID,以及上网是否在这个时间段里面
      * 来获取年龄，上网时长,上网的人数
      * @author zhangke
      * @since 0.0.4
      */
     
-    @RequestMapping(value= "/age_time",method = {RequestMethod.GET,RequestMethod.POST})
-    public List<AgeAndTimeResp> getInternetAgeAndTime(@RequestParam(required = true) int maxTime,@RequestParam(required =true) int interval,@RequestParam(required = false) String barIds) throws Exception
-    {
-        return totalsService.selectInternetAgeAndTime(maxTime,interval,barIds);
+    @RequestMapping(value = "/age_time", method = { RequestMethod.GET, RequestMethod.POST })
+    public List<AgeAndTimeResp> getInternetAgeAndTime(@RequestParam(required = false) Long startTime,
+            @RequestParam(required = false)Long endTime,
+            @RequestParam(required = true) int maxInternetTime,
+            @RequestParam(required = true) int interval, @RequestParam(required = false) String barIds)
+            throws Exception {
+            return totalsService.selectInternetAgeAndTime(startTime, endTime, maxInternetTime, interval, barIds);
+
     }
     
     /**
@@ -150,15 +150,37 @@ public class ScatterMatrixController {
     }
    
     @RequestMapping(value= "/age-count",method = {RequestMethod.GET,RequestMethod.POST})
-    public List<AgeCount> getAgeCount() {
-        return totalsService.selectAgeCount();
+    public List<AgeCount> getAgeCount(@RequestParam(required = true) long startTime,
+            @RequestParam(required = true)long endTime,
+            @RequestParam(required = true)long interval,
+            @RequestParam(required = false) String barIds,
+            @RequestParam(required = false) String ageTime) {
+        if(barIds == null) {
+            barIds = "";
+        }
+        
+        List<InternetUserFilterBean> ageTimeT = new ArrayList<InternetUserFilterBean>();
+        if(ageTime != null) {
+            ageTimeT = JacksonConverter.decodeAsList(ageTime, InternetUserFilterBean.class);
+        }
+        return totalsService.selectAgeCount(startTime,endTime,interval,barIds,ageTimeT);
     }
     
     @RequestMapping(value= "/internet-time-distribution",method = {RequestMethod.GET,RequestMethod.POST})
     public List<Long> queryInternetTimeDistribution(
-    		@RequestParam(required = true) long startTime,
-    		@RequestParam(required = true)long endTime) {
-        return totalsService.queryInternetTimeDistribution(startTime, endTime);
+            @RequestParam(required = true) long startTime,
+            @RequestParam(required = true)long endTime,
+            @RequestParam(required = true)long interval,
+            @RequestParam(required = false) String barIds,
+            @RequestParam(required = false) String ageTime) {
+        if (barIds == null) {
+            barIds = "";
+        }
+        List<InternetUserFilterBean> ageTimeT = new ArrayList<InternetUserFilterBean>();
+        if (ageTime != null) {
+            ageTimeT = JacksonConverter.decodeAsList(ageTime, InternetUserFilterBean.class);
+        }
+        return totalsService.queryInternetTimeDistribution(startTime, endTime,interval,barIds,ageTimeT);
     }
     
 }
