@@ -547,7 +547,7 @@ public class TotalsServiceImpl {
         
         startTime = startTime - startDate.getMinutes() * 60 - startDate.getSeconds();
         
-        List<InternetUsersCount> counts = selectAllByTimeSplit(startTime, endTime, 3600, null, new ArrayList<InternetUserFilterBean>());
+        List<InternetUsersCount> counts = selectAllByTimeSplit(startTime, endTime, 3600, "", new ArrayList<InternetUserFilterBean>());
         
         int index = (startDay - 1) * 24 + startHour;
         for (InternetUsersCount count: counts) {
