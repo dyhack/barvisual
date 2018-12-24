@@ -358,24 +358,28 @@ public class TotalsServiceImpl {
      * @throws Exception 
      * @since 0.0.1
      */
-    public List<AgeAndTimeResp> selectInternetAgeAndTime(int maxInternetTime, int interval,String barIds) throws Exception
-    {   
+    public List<AgeAndTimeResp> selectInternetAgeAndTime(Long startTime,Long endTime,int maxInternetTime, int interval, String barIds)
+            throws Exception {
+        boolean fiilterTime = true;
+        if(startTime==null||endTime==null)
+        {
+            fiilterTime = false;
+        }
         List<TotalByTime> tempTotalsByTime = totals;
-        
-        if(barIds == null)
-        {
-            
-        }else
-        {
-        String barIdArray[] = barIds.split(",");
+    
+        if (barIds == null) {
+
+        } else {
+            String barIdArray[] = barIds.split(",");
             List<TotalByTime> temp = new ArrayList<>();
-            for(TotalByTime t:tempTotalsByTime)
-            {
-                for(String s:barIdArray)
-                {
-                    if(t.getBarid().equals(s))
-                    {
+            for (TotalByTime t : tempTotalsByTime) {
+                for (String s : barIdArray) {
+                    if (t.getBarid()
+                            .equals(s)) {
+                        if(fiilterTime&&!(t.getOnlinetime() >= endTime || t.getOfflinetime() <= startTime))
+                        {
                         temp.add(t);
+                        }
                     }
                 }
             }
@@ -383,21 +387,20 @@ public class TotalsServiceImpl {
         }
         System.out.println(tempTotalsByTime.size());
         List<AgeAndTimeResp> resultList = new ArrayList<>();
-        int splits= maxInternetTime/interval;
-        ageTime = new int[ageMap.keySet().size()+1][splits+1];
+        int splits = maxInternetTime / interval;
+        ageTime = new int[ageMap.keySet()
+                .size() + 1][splits + 1];
         for (TotalByTime t : tempTotalsByTime) {
-            int tempAge = t.getAge().intValue();
+            int tempAge = t.getAge()
+                    .intValue();
             int tempTime = (int) Math.ceil((double) t.getInternet_time() / interval);
-            if (tempAge >= 50)
-            {
-                if(tempAge>=200)
-                {
-                   // tempTotalsByTime.remove(t);
+            if (tempAge >= 50) {
+                if (tempAge >= 200) {
+                    // tempTotalsByTime.remove(t);
                     System.out.println("存在大于200岁的老妖怪");
                 }
-                if(tempAge>=100)
-                {
-                    tempAge=100;
+                if (tempAge >= 100) {
+                    tempAge = 100;
                 }
             }
             if (tempTime >= splits) {
@@ -405,12 +408,10 @@ public class TotalsServiceImpl {
             }
             ageTime[tempAge][tempTime]++;
         }
-              
-        for(int i=0;i<=100;i++)
-        {
-            for(int j=0;j<=splits;j++)
-            {
-                resultList.add(new AgeAndTimeResp(i,j,ageTime[i][j]));
+
+        for (int i = 0; i <= 100; i++) {
+            for (int j = 0; j <= splits; j++) {
+                resultList.add(new AgeAndTimeResp(i, j, ageTime[i][j]));
             }
         }
         return resultList;
@@ -508,18 +509,20 @@ public class TotalsServiceImpl {
      * 获取网民年龄统计
      * @return
      */
-    public List<AgeCount> selectAgeCount(){
+    public List<AgeCount> selectAgeCount(long startTime,long endTime,long interval,String barIds, List<InternetUserFilterBean> ageTime){
         //TODO: 
-        List<TotalByTime> safeTotals = totals;
+        List<TotalByTime> safeTotals = filterByCondition(barIds, startTime, endTime, ageTime);
         
         List<AgeCount> results = new ArrayList<AgeCount>();
-        for(int i = 0; i <= 100; i++) {
-            results.add(new AgeCount(i, 0));
+        int blocks = (int) (100/interval);
+        for(int i = 0; i <= blocks; i++) {
+            results.add(new AgeCount(i*interval, 0));
         }
         
         for(TotalByTime total: safeTotals) {
             int age = total.getAge().intValue();
             if(age > 100) age = 100;
+            if((age)/interval<=blocks) age = (int) (age/interval); 
             results.get(age).increase();
         }
         
@@ -531,7 +534,7 @@ public class TotalsServiceImpl {
      * @return
      */
     
-    public List<Long> queryInternetTimeDistribution(long startTime, long endTime){
+    public List<Long> queryInternetTimeDistribution(long startTime, long endTime,long interval,String barIds, List<InternetUserFilterBean> ageTime){
         //TODO: 
         List<TotalByTime> safeTotals = totals;
         
@@ -547,7 +550,7 @@ public class TotalsServiceImpl {
         
         startTime = startTime - startDate.getMinutes() * 60 - startDate.getSeconds();
         
-        List<InternetUsersCount> counts = selectAllByTimeSplit(startTime, endTime, 3600, null, new ArrayList<InternetUserFilterBean>());
+        List<InternetUsersCount> counts = selectAllByTimeSplit(startTime, endTime, interval, barIds, ageTime);
         
         int index = (startDay - 1) * 24 + startHour;
         for (InternetUsersCount count: counts) {
