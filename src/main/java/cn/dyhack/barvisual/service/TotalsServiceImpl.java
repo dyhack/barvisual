@@ -550,11 +550,7 @@ public class TotalsServiceImpl {
         
         startTime = startTime - startDate.getMinutes() * 60 - startDate.getSeconds();
         
-<<<<<<< HEAD
         List<InternetUsersCount> counts = selectAllByTimeSplit(startTime, endTime, 3600, "", new ArrayList<InternetUserFilterBean>());
-=======
-        List<InternetUsersCount> counts = selectAllByTimeSplit(startTime, endTime, interval, barIds, ageTime);
->>>>>>> refs/remotes/origin/zhangke
         
         int index = (startDay - 1) * 24 + startHour;
         for (InternetUsersCount count: counts) {
