@@ -1,12 +1,21 @@
 package cn.dyhack.barvisual.app;
 
+import java.io.IOException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 import javax.annotation.Resource;
+import javax.servlet.ServletContext;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.tools.ant.taskdefs.Get;
 import org.jooq.False;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,11 +35,13 @@ import cn.dyhack.barvisual.pojo.tables.pojos.Total;
 import cn.dyhack.barvisual.resp.AgeAndTimeResp;
 import cn.dyhack.barvisual.resp.AgeCount;
 import cn.dyhack.barvisual.resp.BarRelevantResp;
+import cn.dyhack.barvisual.resp.ExportData;
 import cn.dyhack.barvisual.resp.InternetUserFilterBean;
 import cn.dyhack.barvisual.resp.InternetUsersCount;
 import cn.dyhack.barvisual.resp.ProvinceFloatCountResp;
 import cn.dyhack.barvisual.service.BarsServiceImpl;
 import cn.dyhack.barvisual.service.TotalsServiceImpl;
+import cn.dyhack.barvisual.util.ExportExcel;
 import cn.signit.wesign.lib.common.type.JacksonConverter;
 
 @CrossOrigin(origins = {"http://localhost:8090", "null"})
@@ -181,6 +192,51 @@ public class ScatterMatrixController {
             ageTimeT = JacksonConverter.decodeAsList(ageTime, InternetUserFilterBean.class);
         }
         return totalsService.queryInternetTimeDistribution(startTime, endTime,interval,barIds,ageTimeT);
+    }
+    
+    /**
+     * 
+     * 导出筛选后的相应的数据
+     *
+     * @param startTime 上线时间
+     * @param endTime 下线时间
+     * @param barIds 多个网吧id
+     * @param ageTime 年龄和上网时间条件
+     * @author zhangke
+     * @since 0.0.6
+     */
+    @RequestMapping(value= "/export-data",method = {RequestMethod.GET,RequestMethod.POST})
+    public void exportData(@RequestParam(required = true) long startTime,
+            @RequestParam(required = true)long endTime,
+            @RequestParam(required = true) String barIds,
+            @RequestParam(required = false) String ageTime,HttpServletResponse response)
+    {      
+        List<InternetUserFilterBean> ageTimeT = new ArrayList<InternetUserFilterBean>();
+        if (ageTime != null) {
+            ageTimeT = JacksonConverter.decodeAsList(ageTime, InternetUserFilterBean.class);
+        }
+           HashMap<String,ExportData> tempresult= totalsService.exportData(startTime,endTime,barIds,ageTimeT);
+           List<ExportData> exoprtReuslt = new ArrayList<ExportData>(tempresult.values());
+           //写入到excel中,并传返回给前端
+           Map<String,String> titleMap = new LinkedHashMap<String,String>();
+           titleMap.put("barId", "网吧ID");
+           titleMap.put("barName", "网吧名称");
+           titleMap.put("underAudit", "未成年人数量");
+           String sheetName = "黑网吧信息";
+           HSSFWorkbook workbook = ExportExcel.excelExport(exoprtReuslt, titleMap, sheetName);
+           try {
+           String fileName = URLEncoder.encode("黑网吧", "UTF-8");
+               workbook.write(response.getOutputStream());
+               //1.设置文件ContentType类型，这样设置，会自动判断下载文件类型   
+               response.setContentType("multipart/form-data");   
+               //2.设置文件头：最后一个参数是设置下载文件名(假如我们叫a.pdf)   
+               response.setHeader("Content-disposition","attachment;filename="+fileName+".xls");;
+               
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+           
+
     }
     
 }

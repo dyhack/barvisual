@@ -11,7 +11,7 @@
 	</parent>
 	<groupId>cn.dyhack.barvisual</groupId>
 	<artifactId>barvisual</artifactId>
-	<version>0.0.5-SNAPSHOT</version>
+	<version>0.0.6-SNAPSHOT</version>
 	<packaging>war</packaging>
 	<name>barvisual</name>
 	<description>barvisual</description>
@@ -93,6 +93,13 @@
 			<artifactId>cors-filter</artifactId>
 			<version>2.6</version>
 		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.apache.poi/poi -->
+		<dependency>
+			<groupId>org.apache.poi</groupId>
+			<artifactId>poi</artifactId>
+			<version>4.0.1</version>
+		</dependency>
+
 
 	</dependencies>
 

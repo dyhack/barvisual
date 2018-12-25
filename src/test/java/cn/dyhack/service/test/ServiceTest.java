@@ -12,8 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-
 import cn.dyhack.barvisual.dao.PersonMapperImpl;
 import cn.dyhack.barvisual.dao.RecordMapperImpl;
 import cn.dyhack.barvisual.dao.TotalMapperImpl;
@@ -21,8 +19,6 @@ import cn.dyhack.barvisual.pojo.tables.pojos.Persons;
 import cn.dyhack.barvisual.pojo.tables.pojos.Records;
 import cn.dyhack.barvisual.pojo.tables.pojos.Total;
 import cn.dyhack.barvisual.resp.InternetUserFilterBean;
-import cn.dyhack.barvisual.resp.InternetUsersCount;
-import cn.dyhack.barvisual.resp.ProvinceFloatCountResp;
 import cn.dyhack.barvisual.service.BarsServiceImpl;
 import cn.dyhack.barvisual.service.PersonsServiceImpl;
 import cn.dyhack.barvisual.service.RecordsServiceImpl;

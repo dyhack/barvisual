@@ -2,6 +2,7 @@ package cn.dyhack.barvisual.service;
 
 import static cn.dyhack.barvisual.pojo.tables.Total.TOTAL;
 
+import java.io.OutputStream;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -28,6 +29,7 @@ import cn.dyhack.barvisual.pojo.tables.pojos.Total;
 import cn.dyhack.barvisual.resp.AgeAndTimeResp;
 import cn.dyhack.barvisual.resp.AgeCount;
 import cn.dyhack.barvisual.resp.BarRelevantResp;
+import cn.dyhack.barvisual.resp.ExportData;
 import cn.dyhack.barvisual.resp.InternetUserFilterBean;
 import cn.dyhack.barvisual.resp.InternetUsersCount;
 import cn.dyhack.barvisual.resp.ProvinceCount;
@@ -98,13 +100,13 @@ public class TotalsServiceImpl {
 //       this.totals = totalMapper.selectAll(); 
        this.totals = totalMapper.selectAllTime();
        System.out.println("====>初始化开始"+totals.size());
-       
+       bars = barsService.selectAll();
        //通过他的年龄分段
        //通过他的上网时间程度分段
        
        for(TotalByTime t:totals)   
        {
-          
+           
            //将表里的日期字段变成年龄(计算从上线时间到出生日期的年龄)
            t.setAge((long)getAgeFromBirthTime(t.getOnlinetime(),Long.valueOf(t.getBirthday())));
            //上网时间
@@ -137,7 +139,7 @@ public class TotalsServiceImpl {
         }
            
        System.out.println("====>获取网吧数据读入内存中");
-       bars = barsService.selectAll();
+       
        
        System.out.println("====>初始化加载完成");
     }
@@ -562,6 +564,14 @@ public class TotalsServiceImpl {
         return results;
     }
     
+    /**
+     * 
+     * 获取省份和对应的流动人口的数量
+     *
+     * @return 返回省份名称:流动人口的数量
+     * @author zhangke
+     * @since 0.0.5
+     */
     public HashMap<String,Integer> getFloatPersonByProvince() {
         ProvinceFloatCountResp provinceFloatCountResp = new ProvinceFloatCountResp();
         ProvinceCount provinceCount = new ProvinceCount();
@@ -592,6 +602,51 @@ public class TotalsServiceImpl {
             }
         }
         return idCount;
-      
     }
+    
+    public HashMap<String,ExportData> exportData(long startTime, long endTime,String barIds, List<InternetUserFilterBean> ageTime)
+    {
+        //构建网吧列表
+        String barIdArray[] = barIds.split(",");
+        //已经通过过滤条件过滤的数据
+        List<TotalByTime> safeTotals = filterByCondition(barIds, startTime, endTime, ageTime);
+        String barName=null;
+        HashSet<String> barIdSet = new HashSet(Arrays.asList(barIdArray));
+        HashMap<String,ExportData> exportDatas = new HashMap<>();
+        for(String s:barIdArray)
+        {   
+            ExportData exportData = new ExportData();
+            exportData.setBarId(s);
+            exportDatas.put(s,exportData);
+        }
+        for(TotalByTime t:safeTotals)
+        {
+            
+            for(Bars bar:bars)
+            {
+                if(bar.getId().equals(t.getBarid()))
+                {
+                    barName=bar.getName();
+                }
+            }
+            if(barIdSet.contains(t.getBarid()))
+            {   
+                ExportData tempExportData = exportDatas.get(t.getBarid());
+                tempExportData.setBarId(t.getBarid());
+                tempExportData.setBarName(barName);
+                int underAudit = tempExportData.getUnderAudit();
+                int suspectIdNums = tempExportData.getSuspectIdNums();
+                if(t.getAge()<18)
+                {
+                    tempExportData.setUnderAudit(++underAudit);
+                }
+                tempExportData.setSuspectIdNums(++suspectIdNums);
+                exportDatas.put(t.getBarid(), tempExportData);
+                
+
+            }
+        }
+        return exportDatas;
+    }
+    
 }
