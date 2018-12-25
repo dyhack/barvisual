@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 
 import cn.dyhack.barvisual.dao.TotalMapperImpl;
 import cn.dyhack.barvisual.pojo.tables.pojos.Bars;
+import cn.dyhack.barvisual.pojo.tables.pojos.Persons;
 import cn.dyhack.barvisual.pojo.tables.pojos.ProvinceId;
 import cn.dyhack.barvisual.pojo.tables.pojos.Total;
 import cn.dyhack.barvisual.resp.AgeAndTimeResp;
@@ -53,6 +54,14 @@ public class TotalsServiceImpl {
     private List<TotalByTime> totals;
     
     private List<TotalByTime> tempTotals;
+    
+    private List<Persons> underAudits = new ArrayList<>();
+    
+    private List<Persons> persons = new ArrayList<>();
+    
+    private HashSet<String> persinIds = new HashSet<>();
+    
+    private HashMap<String, Persons> barIdPerson = new HashMap<>();
     
 //    private List<TotalByTime> totalsByTime;
 //    
@@ -87,6 +96,7 @@ public class TotalsServiceImpl {
     @PostConstruct
     private void preLoadTotals()
     { 
+        persons = personsService.selectAll();
         Set<Long> internetTime = new HashSet<>();
         for(int i=0;i<=100;i++)
         {
@@ -97,7 +107,6 @@ public class TotalsServiceImpl {
             timeMap.put((long)i,new ArrayList<>());
             internetTime.add((long)i);
         }
-//       this.totals = totalMapper.selectAll(); 
        this.totals = totalMapper.selectAllTime();
        System.out.println("====>初始化开始"+totals.size());
        bars = barsService.selectAll();
@@ -613,7 +622,6 @@ public class TotalsServiceImpl {
 	     {
 			 barsMap.put(bar.getId(), bar);
 	     }
-    	
         //已经通过过滤条件过滤的数据
         List<TotalByTime> safeTotals = filterByCondition(barIds, startTime, endTime, ageTime);
         HashMap<String,ExportData> exportDatas = new HashMap<>();
@@ -621,7 +629,7 @@ public class TotalsServiceImpl {
         for(TotalByTime t:safeTotals)
         {
             String barId = t.getBarid();
-            
+            ArrayList<String> tempPersonIds = new ArrayList<>();
             ExportData tempExportData = null;
             if(exportDatas.containsKey(barId)) {
             	tempExportData = exportDatas.get(barId);
@@ -641,10 +649,32 @@ public class TotalsServiceImpl {
             if(t.getAge()<18)
             {
                 tempExportData.setUnderAudit(++underAudit);
+                if(persinIds.contains(t.getPersonid()))
+                {
+                       
+                }else
+                {
+                    persinIds.add(t.getPersonid());
+                }
             }
             tempExportData.setSuspectIdNums(++suspectIdNums);
         }
+        
+        
         return exportDatas;
     }
+    
+    public List<Persons> exportAuditData()
+    {
+       for(Persons perosn:persons)
+       {
+           if(persinIds.contains(perosn.getId()))
+           {
+               underAudits.add(perosn);
+           }
+       }
+       return underAudits;
+    }
+    
     
 }

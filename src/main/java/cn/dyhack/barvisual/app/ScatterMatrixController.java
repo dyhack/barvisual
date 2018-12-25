@@ -8,16 +8,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.annotation.Resource;
-import javax.servlet.ServletContext;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.tools.ant.taskdefs.Get;
-import org.jooq.False;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -31,6 +24,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import cn.dyhack.barvisual.pojo.tables.pojos.Bars;
+import cn.dyhack.barvisual.pojo.tables.pojos.Persons;
 import cn.dyhack.barvisual.pojo.tables.pojos.Total;
 import cn.dyhack.barvisual.resp.AgeAndTimeResp;
 import cn.dyhack.barvisual.resp.AgeCount;
@@ -38,7 +32,6 @@ import cn.dyhack.barvisual.resp.BarRelevantResp;
 import cn.dyhack.barvisual.resp.ExportData;
 import cn.dyhack.barvisual.resp.InternetUserFilterBean;
 import cn.dyhack.barvisual.resp.InternetUsersCount;
-import cn.dyhack.barvisual.resp.ProvinceFloatCountResp;
 import cn.dyhack.barvisual.service.BarsServiceImpl;
 import cn.dyhack.barvisual.service.TotalsServiceImpl;
 import cn.dyhack.barvisual.util.ExportExcel;
@@ -256,13 +249,23 @@ public class ScatterMatrixController {
         }
            HashMap<String,ExportData> tempresult= totalsService.exportData(startTime,endTime,barIds,ageTimeT);
            List<ExportData> exoprtReuslt = new ArrayList<ExportData>(tempresult.values());
+           List<Persons> underAuditResult =  totalsService.exportAuditData();
            //写入到excel中,并传返回给前端
            Map<String,String> titleMap = new LinkedHashMap<String,String>();
+           String []sheetName = new String[]{"黑网吧信息","未成年人信息"};
            titleMap.put("barId", "网吧ID");
            titleMap.put("barName", "网吧名称");
            titleMap.put("underAudit", "未成年人数量");
-           String sheetName = "黑网吧信息";
-           HSSFWorkbook workbook = ExportExcel.excelExport(exoprtReuslt, titleMap, sheetName);
+           ExportExcel.initHSSFWorkbook(sheetName);
+           ExportExcel.excelExport(0,exoprtReuslt, titleMap, sheetName);
+           titleMap.clear();
+           titleMap.put("id","用户ID");
+           titleMap.put("name", "网吧名称");
+           titleMap.put("sex", "性别(0:男,1:女)");
+           titleMap.put("areaid", "地区id");
+           titleMap.put("birthday", "出生日期");
+           HSSFWorkbook workbook = ExportExcel.excelExport(1,underAuditResult, titleMap, sheetName);
+           //workbook.createSheet("未成年信息");
            try {
            String fileName = URLEncoder.encode("黑网吧", "UTF-8");   
                //1.设置文件ContentType类型，这样设置，会自动判断下载文件类型   

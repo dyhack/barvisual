@@ -18,6 +18,7 @@ import cn.dyhack.barvisual.dao.TotalMapperImpl;
 import cn.dyhack.barvisual.pojo.tables.pojos.Persons;
 import cn.dyhack.barvisual.pojo.tables.pojos.Records;
 import cn.dyhack.barvisual.pojo.tables.pojos.Total;
+import cn.dyhack.barvisual.resp.ExportData;
 import cn.dyhack.barvisual.resp.InternetUserFilterBean;
 import cn.dyhack.barvisual.service.BarsServiceImpl;
 import cn.dyhack.barvisual.service.PersonsServiceImpl;
@@ -27,7 +28,6 @@ import cn.dyhack.barvisual.service.TotalsServiceImpl;
 import cn.signit.wesign.lib.common.type.JacksonConverter;
 @RunWith(SpringRunner.class)
 @SpringBootTest
-@Ignore
 public class ServiceTest {
    
     @Autowired
@@ -209,7 +209,7 @@ public class ServiceTest {
     }
     
     @Test
-
+   
     public void beanTest()
     {   
         List<InternetUserFilterBean> internetUserFilterBeans=new ArrayList<>();
@@ -245,5 +245,9 @@ public class ServiceTest {
         System.out.println(JacksonConverter.encodeAsString(internetUserFilterBeans));
         filterBeans = JacksonConverter.decodeAsBean(JacksonConverter.encodeAsString(internetUserFilterBeans), InternetUserFilterBean.class);
         totalsService.filterByCondition("50024210000089,50011710000148",1475467871L, 1476467871L,internetUserFilterBeans);
+        
     }
+    
+
+    
 }

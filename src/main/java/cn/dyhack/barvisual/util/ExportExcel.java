@@ -38,7 +38,7 @@ public final class ExportExcel {
       /***
        * sheet
        */
-      private static HSSFSheet sheet;
+      private static HSSFSheet[] sheet ;
      /***
        * 标题行开始位置
        */
@@ -69,26 +69,22 @@ public final class ExportExcel {
        * @param sheetName
        *        sheet名称和表头值
        */
-      public static HSSFWorkbook excelExport(List<?> dataList, Map<String, String> titleMap, String sheetName) {
         // 初始化workbook
-        initHSSFWorkbook(sheetName);
+      public static HSSFWorkbook excelExport(int index,List<?> dataList, Map<String, String> titleMap, String []sheetName) {
+        
+        //initHSSFWorkbook(sheetName);
         // 标题行
-        createTitleRow(titleMap, sheetName);
+        createTitleRow(index,titleMap, sheetName);
         // 时间行
-        createDateHeadRow(titleMap);
+        createDateHeadRow(index,titleMap);
         // 表头行
-        createHeadRow(titleMap);
+        createHeadRow(index,titleMap);
         // 文本行
-        createContentRow(dataList, titleMap);
+        createContentRow(index,dataList, titleMap);
         //设置自动伸缩
         //autoSizeColumn(titleMap.size());
         // 写入处理结果
         try {
-          //生成UUID文件名称
-          //UUID是指在一台机器上生成的数字，它保证对在同一时空中的所有机器都是唯一的。
-          UUID uuid = UUID.randomUUID();
-          String filedisplay = uuid+".xls";
-          //如果web项目，1、设置下载框的弹出（设置response相关参数)；2、通过httpservletresponse.getOutputStream()获取
           return workbook;
         }
         catch (Exception e) {
@@ -102,9 +98,12 @@ public final class ExportExcel {
        * @param sheetName
        *        sheetName
        */
-      private static void initHSSFWorkbook(String sheetName) {
+      public static void initHSSFWorkbook(String []sheetName) {
         workbook = new HSSFWorkbook();
-        sheet = workbook.createSheet(sheetName);
+        HSSFSheet[] tempSheet = new HSSFSheet[sheetName.length];
+        sheet =tempSheet;
+        for(int i=0;i<sheetName.length;i++)
+        sheet[i] = workbook.createSheet(sheetName[i]);
       }
 
       /**
@@ -112,22 +111,23 @@ public final class ExportExcel {
        * @param titleMap 对象属性名称->表头显示名称
        * @param sheetName sheet名称
        */
-      private static void createTitleRow(Map<String, String> titleMap, String sheetName) {
+      private static void createTitleRow(int index,Map<String, String> titleMap, String sheetName[]) {
+        
         CellRangeAddress titleRange = new CellRangeAddress(0, 0, 0, titleMap.size() - 1);
-        sheet.addMergedRegion(titleRange);
-        HSSFRow titleRow = sheet.createRow(TITLE_START_POSITION);
+        sheet[index].addMergedRegion(titleRange);
+        HSSFRow titleRow = sheet[index].createRow(TITLE_START_POSITION);
         HSSFCell titleCell = titleRow.createCell(0);
-        titleCell.setCellValue(sheetName);
+        titleCell.setCellValue(sheetName[index]);
       }
 
       /**
        * 创建时间行（第一行创建）
        * @param titleMap 对象属性名称->表头显示名称
        */
-      private static void createDateHeadRow(Map<String, String> titleMap) {
+      private static void createDateHeadRow(int index,Map<String, String> titleMap) {
         CellRangeAddress dateRange = new CellRangeAddress(1, 1, 0, titleMap.size() - 1);
-        sheet.addMergedRegion(dateRange);
-        HSSFRow dateRow = sheet.createRow(DATEHEAD_START_POSITION);
+        sheet[index].addMergedRegion(dateRange);
+        HSSFRow dateRow = sheet[index].createRow(DATEHEAD_START_POSITION);
         HSSFCell dateCell = dateRow.createCell(0);   
         dateCell.setCellValue(new SimpleDateFormat("yyyy年MM月dd日").format(new Date()));
       }
@@ -136,9 +136,9 @@ public final class ExportExcel {
        * 创建表头行（第二行创建）
        * @param titleMap 对象属性名称->表头显示名称
        */
-      private static void createHeadRow(Map<String, String> titleMap) {
+      private static void createHeadRow(int index,Map<String, String> titleMap) {
         // 第1行创建
-        HSSFRow headRow = sheet.createRow(HEAD_START_POSITION);
+        HSSFRow headRow = sheet[index].createRow(HEAD_START_POSITION);
         int i = 0;
         for (String entry : titleMap.keySet()) {
           HSSFCell headCell = headRow.createCell(i);
@@ -152,11 +152,11 @@ public final class ExportExcel {
       * @param dataList 对象数据集合
       * @param titleMap 表头信息
       */
-      private static void createContentRow(List<?> dataList, Map<String, String> titleMap) {
+      private static void createContentRow(int index,List<?> dataList, Map<String, String> titleMap) {
         try {
           int i=0;
           for (Object obj : dataList) {
-            HSSFRow textRow = sheet.createRow(CONTENT_START_POSITION + i);
+            HSSFRow textRow = sheet[index].createRow(CONTENT_START_POSITION + i);
             int j = 0;
             for (String entry : titleMap.keySet()) {
               String method = "get" + entry.substring(0, 1).toUpperCase() + entry.substring(1);
@@ -178,10 +178,12 @@ public final class ExportExcel {
        * 自动伸缩列（如非必要，请勿打开此方法，耗内存）
        * @param size 列数
        */
-      private static void autoSizeColumn(Integer size) { 
+      private static void autoSizeColumn(int index,Integer size) { 
         for (int j = 0; j < size; j++) {
-          sheet.autoSizeColumn(j);
+          sheet[index].autoSizeColumn(j);
         }
       }
+      
+      
 }
 
