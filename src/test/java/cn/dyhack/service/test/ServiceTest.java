@@ -28,6 +28,7 @@ import cn.dyhack.barvisual.service.TotalsServiceImpl;
 import cn.signit.wesign.lib.common.type.JacksonConverter;
 @RunWith(SpringRunner.class)
 @SpringBootTest
+@Ignore
 public class ServiceTest {
    
     @Autowired

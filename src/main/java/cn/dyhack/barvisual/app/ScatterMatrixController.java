@@ -2,6 +2,7 @@ package cn.dyhack.barvisual.app;
 
 import java.io.IOException;
 import java.net.URLEncoder;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -23,8 +24,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import cn.dyhack.barvisual.map.VoPersonsMapper;
 import cn.dyhack.barvisual.pojo.tables.pojos.Bars;
-import cn.dyhack.barvisual.pojo.tables.pojos.Persons;
 import cn.dyhack.barvisual.pojo.tables.pojos.Total;
 import cn.dyhack.barvisual.resp.AgeAndTimeResp;
 import cn.dyhack.barvisual.resp.AgeCount;
@@ -32,6 +33,7 @@ import cn.dyhack.barvisual.resp.BarRelevantResp;
 import cn.dyhack.barvisual.resp.ExportData;
 import cn.dyhack.barvisual.resp.InternetUserFilterBean;
 import cn.dyhack.barvisual.resp.InternetUsersCount;
+import cn.dyhack.barvisual.resp.PersonsByAge;
 import cn.dyhack.barvisual.service.BarsServiceImpl;
 import cn.dyhack.barvisual.service.TotalsServiceImpl;
 import cn.dyhack.barvisual.util.ExportExcel;
@@ -249,7 +251,15 @@ public class ScatterMatrixController {
         }
            HashMap<String,ExportData> tempresult= totalsService.exportData(startTime,endTime,barIds,ageTimeT);
            List<ExportData> exoprtReuslt = new ArrayList<ExportData>(tempresult.values());
-           List<Persons> underAuditResult =  totalsService.exportAuditData();
+           List<PersonsByAge> underAuditResult =  VoPersonsMapper.INSTATNCE.ListPersonToPersonVos(totalsService.exportAuditData());
+           for(PersonsByAge p:underAuditResult)
+           {   
+               SimpleDateFormat sf=new SimpleDateFormat("yyyy-MM-dd");
+               long time = new Long(p.getBirthday());
+                p.setBirthday(sf.format(new java.util.Date(time*1000)));
+                p.setSex(p.getSex().equals("1")?"男":"女");
+
+           }
            //写入到excel中,并传返回给前端
            Map<String,String> titleMap = new LinkedHashMap<String,String>();
            String []sheetName = new String[]{"黑网吧信息","未成年人信息"};
@@ -261,7 +271,7 @@ public class ScatterMatrixController {
            titleMap.clear();
            titleMap.put("id","用户ID");
            titleMap.put("name", "网吧名称");
-           titleMap.put("sex", "性别(0:男,1:女)");
+           titleMap.put("sex", "性别");
            titleMap.put("areaid", "地区id");
            titleMap.put("birthday", "出生日期");
            HSSFWorkbook workbook = ExportExcel.excelExport(1,underAuditResult, titleMap, sheetName);
