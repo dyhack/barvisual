@@ -239,11 +239,17 @@ public class ScatterMatrixController {
      * @since 0.0.6
      */
     @RequestMapping(value= "/export-data",method = {RequestMethod.GET,RequestMethod.POST})
-    public void exportData(@RequestParam(required = true) long startTime,
-            @RequestParam(required = true)long endTime,
-            @RequestParam(required = true) String barIds,
-            @RequestParam(required = false) String ageTime,HttpServletResponse response)
-    {      
+    public void exportData(
+    		@RequestParam(required = true) long startTime,
+            @RequestParam(required = true) long endTime,
+            @RequestParam(required = false) String barIds,
+            @RequestParam(required = false) String ageTime,
+            HttpServletResponse response)
+    {   
+    	if (barIds == null) {
+            barIds = "";
+        }
+    	
         List<InternetUserFilterBean> ageTimeT = new ArrayList<InternetUserFilterBean>();
         if (ageTime != null) {
             ageTimeT = JacksonConverter.decodeAsList(ageTime, InternetUserFilterBean.class);

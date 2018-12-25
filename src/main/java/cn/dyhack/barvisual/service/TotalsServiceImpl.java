@@ -605,44 +605,41 @@ public class TotalsServiceImpl {
     public HashMap<String,ExportData> exportData(long startTime, long endTime,String barIds, List<InternetUserFilterBean> ageTime)
     {
         //构建网吧列表
-        String barIdArray[] = barIds.split(",");
+    	Map<String,Bars> barsMap = new HashMap<String,Bars>();
+		 for(Bars bar:bars)
+	     {
+			 barsMap.put(bar.getId(), bar);
+	     }
+    	
         //已经通过过滤条件过滤的数据
         List<TotalByTime> safeTotals = filterByCondition(barIds, startTime, endTime, ageTime);
-        String barName=null;
-        HashSet<String> barIdSet = new HashSet(Arrays.asList(barIdArray));
         HashMap<String,ExportData> exportDatas = new HashMap<>();
-        for(String s:barIdArray)
-        {   
-            ExportData exportData = new ExportData();
-            exportData.setBarId(s);
-            exportDatas.put(s,exportData);
-        }
+        
         for(TotalByTime t:safeTotals)
         {
+            String barId = t.getBarid();
             
-            for(Bars bar:bars)
+            ExportData tempExportData = null;
+            if(exportDatas.containsKey(barId)) {
+            	tempExportData = exportDatas.get(barId);
+            } else {
+            	tempExportData = new ExportData();
+            	tempExportData.setBarId(barId);
+            	if(barsMap.containsKey(barId)) {
+            		tempExportData.setBarName(barsMap.get(barId).getName());            		
+            	} else {
+            		tempExportData.setBarName("未记录的网吧");
+            	}
+            	exportDatas.put(barId, tempExportData);
+            }
+            
+            int underAudit = tempExportData.getUnderAudit();
+            int suspectIdNums = tempExportData.getSuspectIdNums();
+            if(t.getAge()<18)
             {
-                if(bar.getId().equals(t.getBarid()))
-                {
-                    barName=bar.getName();
-                }
+                tempExportData.setUnderAudit(++underAudit);
             }
-            if(barIdSet.contains(t.getBarid()))
-            {   
-                ExportData tempExportData = exportDatas.get(t.getBarid());
-                tempExportData.setBarId(t.getBarid());
-                tempExportData.setBarName(barName);
-                int underAudit = tempExportData.getUnderAudit();
-                int suspectIdNums = tempExportData.getSuspectIdNums();
-                if(t.getAge()<18)
-                {
-                    tempExportData.setUnderAudit(++underAudit);
-                }
-                tempExportData.setSuspectIdNums(++suspectIdNums);
-                exportDatas.put(t.getBarid(), tempExportData);
-                
-
-            }
+            tempExportData.setSuspectIdNums(++suspectIdNums);
         }
         return exportDatas;
     }
