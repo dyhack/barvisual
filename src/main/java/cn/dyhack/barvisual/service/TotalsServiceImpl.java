@@ -616,6 +616,8 @@ public class TotalsServiceImpl {
     
     public HashMap<String,ExportData> exportData(long startTime, long endTime,String barIds, List<InternetUserFilterBean> ageTime)
     {
+    	persinIds.clear();
+    	underAudits.clear();
         //构建网吧列表
     	Map<String,Bars> barsMap = new HashMap<String,Bars>();
 		 for(Bars bar:bars)
@@ -651,8 +653,8 @@ public class TotalsServiceImpl {
                 tempExportData.setUnderAudit(++underAudit);
                 if(persinIds.contains(t.getPersonid()))
                 {
-                       
-                }else
+                }
+                else
                 {
                     persinIds.add(t.getPersonid());
                 }
@@ -666,6 +668,8 @@ public class TotalsServiceImpl {
     
     public List<Persons> exportAuditData()
     {
+       List<Persons> underAudits = new ArrayList<>();
+    	
        for(Persons perosn:persons)
        {
            if(persinIds.contains(perosn.getId()))
