@@ -2,7 +2,6 @@ package cn.dyhack.barvisual.service;
 
 import static cn.dyhack.barvisual.pojo.tables.Total.TOTAL;
 
-import java.io.OutputStream;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -13,13 +12,11 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.data.redis.RedisProperties.Lettuce;
 import org.springframework.stereotype.Service;
 
 import cn.dyhack.barvisual.dao.TotalMapperImpl;
@@ -62,6 +59,8 @@ public class TotalsServiceImpl {
 //    
     private List<Bars> bars;
     
+    private HashMap<String,String> barIdNameSet = new HashMap<>() ;
+    
     /**
      * 格式<年龄,上网人员集合>
      */
@@ -86,7 +85,7 @@ public class TotalsServiceImpl {
      */
     @PostConstruct
     private void preLoadTotals()
-    {   
+    { 
         Set<Long> internetTime = new HashSet<>();
         for(int i=0;i<=100;i++)
         {
@@ -103,7 +102,10 @@ public class TotalsServiceImpl {
        bars = barsService.selectAll();
        //通过他的年龄分段
        //通过他的上网时间程度分段
-       
+       for(Bars bar:bars)
+       {
+          barIdNameSet.put(bar.getId(), bar.getName());
+       }
        for(TotalByTime t:totals)   
        {
            
@@ -610,7 +612,6 @@ public class TotalsServiceImpl {
         String barIdArray[] = barIds.split(",");
         //已经通过过滤条件过滤的数据
         List<TotalByTime> safeTotals = filterByCondition(barIds, startTime, endTime, ageTime);
-        String barName=null;
         HashSet<String> barIdSet = new HashSet(Arrays.asList(barIdArray));
         HashMap<String,ExportData> exportDatas = new HashMap<>();
         for(String s:barIdArray)
@@ -622,18 +623,12 @@ public class TotalsServiceImpl {
         for(TotalByTime t:safeTotals)
         {
             
-            for(Bars bar:bars)
-            {
-                if(bar.getId().equals(t.getBarid()))
-                {
-                    barName=bar.getName();
-                }
-            }
+           
             if(barIdSet.contains(t.getBarid()))
             {   
                 ExportData tempExportData = exportDatas.get(t.getBarid());
                 tempExportData.setBarId(t.getBarid());
-                tempExportData.setBarName(barName);
+                tempExportData.setBarName(barIdNameSet.get(t.getBarid()));
                 int underAudit = tempExportData.getUnderAudit();
                 int suspectIdNums = tempExportData.getSuspectIdNums();
                 if(t.getAge()<18)
