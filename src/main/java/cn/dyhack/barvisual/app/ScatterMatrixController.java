@@ -125,15 +125,20 @@ public class ScatterMatrixController {
      * 通过上网最大的时间和分成多少段以及网吧ID,以及上网是否在这个时间段里面
      * 来获取年龄，上网时长,上网的人数
      * @author zhangke
+     * @throws Exception 
      * @since 0.0.4
      */
     
     @RequestMapping(value = "/age_time", method = { RequestMethod.GET, RequestMethod.POST })
-    public List<AgeAndTimeResp> getInternetAgeAndTime(@RequestParam(required = false) Long startTime,
-            @RequestParam(required = false)Long endTime,
+    public List<AgeAndTimeResp> getInternetAgeAndTime(
+    		@RequestParam(required = false) Long startTime,
+            @RequestParam(required = false) Long endTime,
+            @RequestParam(required = false) String barIds,
             @RequestParam(required = true) int maxInternetTime,
-            @RequestParam(required = true) int interval, @RequestParam(required = false) String barIds)
-            throws Exception {
+            @RequestParam(required = true) int interval) throws Exception {
+	    	if (barIds == null) {
+	            barIds = "";
+	        }
             return totalsService.selectInternetAgeAndTime(startTime, endTime, maxInternetTime, interval, barIds);
 
     }
@@ -144,28 +149,55 @@ public class ScatterMatrixController {
      * @since 0.0.4
      */
     @RequestMapping(value= "/filterinfo",method = {RequestMethod.GET,RequestMethod.POST})
-    public List<BarRelevantResp> getBarRelevantInfo(@RequestParam(required = true) long startTime,
-            @RequestParam(required = true) long endTime, @RequestParam(required = true) int minAge,
-            @RequestParam(required = true) int maxAge, @RequestParam(required = true) long maxInternetTime,
-            @RequestParam(required = true) long minInternetTime) {
-        return totalsService.getBarRelevantResp(startTime, endTime, minAge, maxAge, maxInternetTime, minInternetTime);
+    public List<BarRelevantResp> getBarRelevantInfo(
+    		@RequestParam(required = true) long startTime,
+            @RequestParam(required = true) long endTime,
+            @RequestParam(required = false) String barIds,
+            @RequestParam(required = false) String ageTime) {
+    	
+    	if(barIds == null) {
+            barIds = "";
+        }
+        
+        List<InternetUserFilterBean> ageTimeT = new ArrayList<InternetUserFilterBean>();
+        if(ageTime != null) {
+            ageTimeT = JacksonConverter.decodeAsList(ageTime, InternetUserFilterBean.class);
+        }
+        
+        return totalsService.getBarRelevantResp(startTime, endTime, barIds, ageTimeT);
     }
     
      /**
       * 获取省份和对应的流动人口数量
       */
     @RequestMapping(value = "province-usercount",method = {RequestMethod.GET,RequestMethod.POST})
-    public HashMap<String,Integer>  getFloatPersonByProvince()
+    public HashMap<String,Integer>  getFloatPersonByProvince(
+	    		@RequestParam(required = true) long startTime,
+	            @RequestParam(required = true) long endTime,
+	            @RequestParam(required = false) String barIds,
+	            @RequestParam(required = false) String ageTime
+    		)
     {
-        return totalsService.getFloatPersonByProvince();
+    	if(barIds == null) {
+            barIds = "";
+        }
+        
+        List<InternetUserFilterBean> ageTimeT = new ArrayList<InternetUserFilterBean>();
+        if(ageTime != null) {
+            ageTimeT = JacksonConverter.decodeAsList(ageTime, InternetUserFilterBean.class);
+        }
+        
+        return totalsService.getFloatPersonByProvince(startTime, endTime, barIds, ageTimeT);
     }
    
     @RequestMapping(value= "/age-count",method = {RequestMethod.GET,RequestMethod.POST})
-    public List<AgeCount> getAgeCount(@RequestParam(required = true) long startTime,
-            @RequestParam(required = true)long endTime,
-            @RequestParam(required = true)long interval,
-            @RequestParam(required = false) String barIds,
-            @RequestParam(required = false) String ageTime) {
+    public List<AgeCount> getAgeCount(
+							    		@RequestParam(required = true) long startTime,
+							            @RequestParam(required = true)long endTime,
+							            @RequestParam(required = true, defaultValue = "1")long interval,
+							            @RequestParam(required = false) String barIds,
+							            @RequestParam(required = false) String ageTime
+							         ) {
         if(barIds == null) {
             barIds = "";
         }
@@ -180,10 +212,10 @@ public class ScatterMatrixController {
     @RequestMapping(value= "/internet-time-distribution",method = {RequestMethod.GET,RequestMethod.POST})
     public List<Long> queryInternetTimeDistribution(
             @RequestParam(required = true) long startTime,
-            @RequestParam(required = true)long endTime,
-            @RequestParam(required = true)long interval,
+            @RequestParam(required = true) long endTime,
             @RequestParam(required = false) String barIds,
             @RequestParam(required = false) String ageTime) {
+    	
         if (barIds == null) {
             barIds = "";
         }
@@ -191,7 +223,8 @@ public class ScatterMatrixController {
         if (ageTime != null) {
             ageTimeT = JacksonConverter.decodeAsList(ageTime, InternetUserFilterBean.class);
         }
-        return totalsService.queryInternetTimeDistribution(startTime, endTime,interval,barIds,ageTimeT);
+        
+        return totalsService.queryInternetTimeDistribution(startTime, endTime,barIds,ageTimeT);
     }
     
     /**
@@ -206,15 +239,18 @@ public class ScatterMatrixController {
      * @since 0.0.6
      */
     @RequestMapping(value= "/export-data",method = {RequestMethod.GET,RequestMethod.POST})
-    public void exportData(@RequestParam(required = true) long startTime,
-            @RequestParam(required = true)long endTime,
+    public void exportData(
+    		@RequestParam(required = true) long startTime,
+            @RequestParam(required = true) long endTime,
             @RequestParam(required = false) String barIds,
-            @RequestParam(required = false) String ageTime,HttpServletResponse response)
-    {      
-        List<InternetUserFilterBean> ageTimeT = new ArrayList<InternetUserFilterBean>();
-        if (barIds == null) {
+            @RequestParam(required = false) String ageTime,
+            HttpServletResponse response)
+    {   
+    	if (barIds == null) {
             barIds = "";
         }
+    	
+        List<InternetUserFilterBean> ageTimeT = new ArrayList<InternetUserFilterBean>();
         if (ageTime != null) {
             ageTimeT = JacksonConverter.decodeAsList(ageTime, InternetUserFilterBean.class);
         }
@@ -228,12 +264,13 @@ public class ScatterMatrixController {
            String sheetName = "黑网吧信息";
            HSSFWorkbook workbook = ExportExcel.excelExport(exoprtReuslt, titleMap, sheetName);
            try {
-           String fileName = URLEncoder.encode("黑网吧", "UTF-8");
-               workbook.write(response.getOutputStream());
+           String fileName = URLEncoder.encode("黑网吧", "UTF-8");   
                //1.设置文件ContentType类型，这样设置，会自动判断下载文件类型   
                response.setContentType("multipart/form-data");   
                //2.设置文件头：最后一个参数是设置下载文件名(假如我们叫a.pdf)   
-               response.setHeader("Content-disposition","attachment;filename="+fileName+".xls");;
+               response.setHeader("Content-disposition","attachment;filename="+fileName+".xls");
+               workbook.write(response.getOutputStream());
+               
                
         } catch (IOException e) {
             e.printStackTrace();

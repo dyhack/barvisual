@@ -12,6 +12,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.PostConstruct;
@@ -364,32 +365,35 @@ public class TotalsServiceImpl {
      */
     public List<AgeAndTimeResp> selectInternetAgeAndTime(Long startTime,Long endTime,int maxInternetTime, int interval, String barIds)
             throws Exception {
-        boolean fiilterTime = true;
-        if(startTime==null||endTime==null)
-        {
-            fiilterTime = false;
-        }
-        List<TotalByTime> tempTotalsByTime = totals;
-    
-        if (barIds == null) {
-
-        } else {
-            String barIdArray[] = barIds.split(",");
-            List<TotalByTime> temp = new ArrayList<>();
-            for (TotalByTime t : tempTotalsByTime) {
-                for (String s : barIdArray) {
-                    if (t.getBarid()
-                            .equals(s)) {
-                        if(fiilterTime&&!(t.getOnlinetime() >= endTime || t.getOfflinetime() <= startTime))
-                        {
-                        temp.add(t);
-                        }
-                    }
-                }
-            }
-            tempTotalsByTime = temp;
-        }
+//        boolean fiilterTime = true;
+//        if(startTime==null||endTime==null)
+//        {
+//            fiilterTime = false;
+//        }
+//        List<TotalByTime> tempTotalsByTime = totals;
+//    
+//        if (barIds == null) {
+//
+//        } else {
+//            String barIdArray[] = barIds.split(",");
+//            List<TotalByTime> temp = new ArrayList<>();
+//            for (TotalByTime t : tempTotalsByTime) {
+//                for (String s : barIdArray) {
+//                    if (t.getBarid()
+//                            .equals(s)) {
+//                        if(fiilterTime&&!(t.getOnlinetime() >= endTime || t.getOfflinetime() <= startTime))
+//                        {
+//                        temp.add(t);
+//                        }
+//                    }
+//                }
+//            }
+//            tempTotalsByTime = temp;
+//        }
+        List<TotalByTime> tempTotalsByTime = filterByCondition(barIds, startTime, endTime, new ArrayList<InternetUserFilterBean>());
+        
         System.out.println(tempTotalsByTime.size());
+        
         List<AgeAndTimeResp> resultList = new ArrayList<>();
         int splits = maxInternetTime / interval;
         ageTime = new int[ageMap.keySet()
@@ -470,41 +474,35 @@ public class TotalsServiceImpl {
     }
     }
     
-    public List<BarRelevantResp> getBarRelevantResp(long startTime, long endTime, int minAge, int maxAge,
-            long maxInternetTime, long minInternetTime) {
-           List<TotalByTime> tempTotalBytime = new ArrayList<>();
-           HashMap<String,BarRelevantResp> tempBars = new HashMap();
-           for(Bars b:bars)
-           {
-               tempBars.put(b.getId(),new BarRelevantResp(b.getId(),0,0));
-           }
-           for(TotalByTime t:totals)
-           {
-               if((t.getAge()>=minAge&&t.getAge()<=maxAge)&&!(t.getOnlinetime()>endTime||t.getOfflinetime()<startTime)&&(t.getInternet_time()<=maxInternetTime&&t.getInternet_time()>=minInternetTime))
-               {
-                   if(tempBars.get(t.getBarid())==null)
-                   {
-                       continue;
-                   }
-                   //获取所有的过滤开始时间，结束时间，上网最大年龄，上网最小年龄，上网时长数据
-                   tempTotalBytime.add(t);
-                   BarRelevantResp bar = tempBars.get(t.getBarid());
-                   if(t.getFloatPopulation()==1)
-                   {
-	                   bar.setFloat_count(bar.getFloat_count() + 1);
-                   }
-                   
-                   if(t.getAge() < 18) {
-                	   bar.setUnder_age_count(bar.getUnder_age_count() + 1);
-                   }
-                   
-                   bar.setCount(bar.getCount() + 1);
-               } 
-               
-               
-           }
-           Collection<BarRelevantResp> values = tempBars.values() ;// 得到全部的value
-           return new ArrayList<>(values);
+    public List<BarRelevantResp> getBarRelevantResp(long startTime,long endTime,String barIds, List<InternetUserFilterBean> ageTime) {
+		   List<TotalByTime> tempTotalsByTime = filterByCondition(barIds, startTime, endTime, ageTime);
+		
+		   HashMap<String,BarRelevantResp> tempBars = new HashMap();
+		   for(Bars b:bars)
+		   {
+		       tempBars.put(b.getId(),new BarRelevantResp(b.getId(),0,0));
+		   }
+		   for(TotalByTime t: tempTotalsByTime)
+		   {
+		       if(tempBars.get(t.getBarid())==null)
+		       {
+		           continue;
+		       }
+		       //获取所有的过滤开始时间，结束时间，上网最大年龄，上网最小年龄，上网时长数据
+		       BarRelevantResp bar = tempBars.get(t.getBarid());
+		       if(t.getFloatPopulation()==1)
+		       {
+		           bar.setFloat_count(bar.getFloat_count() + 1);
+		       }
+		       
+		       if(t.getAge() < 18) {
+		    	   bar.setUnder_age_count(bar.getUnder_age_count() + 1);
+		       }
+		       
+		       bar.setCount(bar.getCount() + 1);
+		   }
+		   Collection<BarRelevantResp> values = tempBars.values() ;// 得到全部的value
+		   return new ArrayList<>(values);
 
     }
     
@@ -538,9 +536,7 @@ public class TotalsServiceImpl {
      * @return
      */
     
-    public List<Long> queryInternetTimeDistribution(long startTime, long endTime,long interval,String barIds, List<InternetUserFilterBean> ageTime){
-        //TODO: 
-        List<TotalByTime> safeTotals = totals;
+    public List<Long> queryInternetTimeDistribution(long startTime, long endTime,String barIds, List<InternetUserFilterBean> ageTime){
         
         //7*24段从星期一开始
         List<Long> results = new ArrayList<Long>();
@@ -554,7 +550,7 @@ public class TotalsServiceImpl {
         
         startTime = startTime - startDate.getMinutes() * 60 - startDate.getSeconds();
         
-        List<InternetUsersCount> counts = selectAllByTimeSplit(startTime, endTime, interval, barIds, ageTime);
+        List<InternetUsersCount> counts = selectAllByTimeSplit(startTime, endTime, 3600, barIds, ageTime);
         
         int index = (startDay - 1) * 24 + startHour;
         for (InternetUsersCount count: counts) {
@@ -566,15 +562,18 @@ public class TotalsServiceImpl {
         return results;
     }
     
-    /**
-     * 
-     * 获取省份和对应的流动人口的数量
-     *
-     * @return 返回省份名称:流动人口的数量
-     * @author zhangke
-     * @since 0.0.5
-     */
-    public HashMap<String,Integer> getFloatPersonByProvince() {
+	/**
+	 * 
+	 * 获取省份和对应的流动人口的数量
+	 *
+	 * @return 返回省份名称:流动人口的数量
+	 * @author zhangke
+	 * @since 0.0.5
+	 */
+    public HashMap<String,Integer> getFloatPersonByProvince(long startTime, long endTime,String barIds, List<InternetUserFilterBean> ageTime) {
+    	
+    	List<TotalByTime> safeTotals = filterByCondition(barIds, startTime, endTime, ageTime);
+    	
         ProvinceFloatCountResp provinceFloatCountResp = new ProvinceFloatCountResp();
         ProvinceCount provinceCount = new ProvinceCount();
         HashMap<Integer, String> provinceId = new HashMap<>();
@@ -584,7 +583,7 @@ public class TotalsServiceImpl {
             provinceId.put(p.getProvinceId(), p.getProvinceName());
             idCount.put(p.getProvinceName(), 0);
         }
-        for (TotalByTime t : totals) {
+        for (TotalByTime t : safeTotals) {
             int count ;
             int proviId;
             //如果为流动人口
@@ -609,37 +608,41 @@ public class TotalsServiceImpl {
     public HashMap<String,ExportData> exportData(long startTime, long endTime,String barIds, List<InternetUserFilterBean> ageTime)
     {
         //构建网吧列表
-        String barIdArray[] = barIds.split(",");
+    	Map<String,Bars> barsMap = new HashMap<String,Bars>();
+		 for(Bars bar:bars)
+	     {
+			 barsMap.put(bar.getId(), bar);
+	     }
+    	
         //已经通过过滤条件过滤的数据
         List<TotalByTime> safeTotals = filterByCondition(barIds, startTime, endTime, ageTime);
-        HashSet<String> barIdSet = new HashSet(Arrays.asList(barIdArray));
         HashMap<String,ExportData> exportDatas = new HashMap<>();
-        for(String s:barIdArray)
-        {   
-            ExportData exportData = new ExportData();
-            exportData.setBarId(s);
-            exportDatas.put(s,exportData);
-        }
+        
         for(TotalByTime t:safeTotals)
         {
+            String barId = t.getBarid();
             
-           
-            if(barIdSet.contains(t.getBarid()))
-            {   
-                ExportData tempExportData = exportDatas.get(t.getBarid());
-                tempExportData.setBarId(t.getBarid());
-                tempExportData.setBarName(barIdNameSet.get(t.getBarid()));
-                int underAudit = tempExportData.getUnderAudit();
-                int suspectIdNums = tempExportData.getSuspectIdNums();
-                if(t.getAge()<18)
-                {
-                    tempExportData.setUnderAudit(++underAudit);
-                }
-                tempExportData.setSuspectIdNums(++suspectIdNums);
-                exportDatas.put(t.getBarid(), tempExportData);
-                
-
+            ExportData tempExportData = null;
+            if(exportDatas.containsKey(barId)) {
+            	tempExportData = exportDatas.get(barId);
+            } else {
+            	tempExportData = new ExportData();
+            	tempExportData.setBarId(barId);
+            	if(barsMap.containsKey(barId)) {
+            		tempExportData.setBarName(barsMap.get(barId).getName());            		
+            	} else {
+            		tempExportData.setBarName("未记录的网吧");
+            	}
+            	exportDatas.put(barId, tempExportData);
             }
+            
+            int underAudit = tempExportData.getUnderAudit();
+            int suspectIdNums = tempExportData.getSuspectIdNums();
+            if(t.getAge()<18)
+            {
+                tempExportData.setUnderAudit(++underAudit);
+            }
+            tempExportData.setSuspectIdNums(++suspectIdNums);
         }
         return exportDatas;
     }
