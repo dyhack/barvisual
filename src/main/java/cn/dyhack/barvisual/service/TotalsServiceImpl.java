@@ -160,7 +160,11 @@ public class TotalsServiceImpl {
         return totalMapper.selectTotalByCondition(filter);
     }
     
-    public List<TotalByTime> filterByCondition(String barIds,long startTime,long endTime,List<InternetUserFilterBean> ageAndTimes)
+    public List<TotalByTime> filterByCondition(String barIds,long startTime,long endTime,List<InternetUserFilterBean> ageAndTimes){
+    	return filterByCondition(barIds, startTime, endTime, ageAndTimes, 0);
+    }
+    
+    public List<TotalByTime> filterByCondition(String barIds,long startTime,long endTime,List<InternetUserFilterBean> ageAndTimes, int type)
     {
         List<TotalByTime> tempTotalByTime = new ArrayList<>();
         
@@ -176,6 +180,18 @@ public class TotalsServiceImpl {
         
         
         for (TotalByTime t : totals) {
+        	if(type == 0) { //0就是全部
+        		
+        	} else if(type == 1) { //1是未成年
+        		if(t.getAge() >= 18) {
+        			continue;
+        		}
+        	} else if(type == 2){
+        		if(t.getFloatPopulation() != 1) {
+        			continue;
+        		}
+        	}
+        	
         	//判断网吧是否符合条件
         	if(barIds.length() > 0) {
         		if(!barIdSet.contains(t.getBarid())) {
@@ -295,9 +311,9 @@ public class TotalsServiceImpl {
      * @since 0.0.1
      */
  
-    public List<InternetUsersCount> selectAllByTimeSplit(long startTime,long endTime,long interval,String barIds, List<InternetUserFilterBean> ageTime)
+    public List<InternetUsersCount> selectAllByTimeSplit(long startTime,long endTime,long interval,String barIds, List<InternetUserFilterBean> ageTime, int type)
     {   
-    	List<TotalByTime> tempTotals = filterByCondition(barIds, startTime, endTime, ageTime);
+    	List<TotalByTime> tempTotals = filterByCondition(barIds, startTime, endTime, ageTime, type);
     	
         System.out.println("===========>进入接口"+ "-----" + new Date().toGMTString());
 //        if(barIds == null)
@@ -327,16 +343,19 @@ public class TotalsServiceImpl {
         List<InternetUsersCount> results = new ArrayList<>();
         List<Integer> onarr = new ArrayList<Integer>();
         List<Integer> offarr = new ArrayList<Integer>();
-        List<Integer> countarr = new ArrayList<Integer>();
+        
+        List<Integer> unadult_countonarr = new ArrayList<Integer>();
+        List<Integer> unadult_countoffarr = new ArrayList<Integer>();
         for(int i = 0; i < blocks; i++) {
             onarr.add(0);
             offarr.add(0);
-            countarr.add(0);
+            unadult_countonarr.add(0);
+            unadult_countoffarr.add(0);
             results.add(new InternetUsersCount());
         }
         System.out.println("===========>处理完成"+ "-----" + new Date().toGMTString());
         //实行前端传入网吧id动态刷新
-        for(Total t: tempTotals) {
+        for(TotalByTime t: tempTotals) {
             long on = t.getOnlinetime();
             long off = t.getOfflinetime();
             int start = new Double(Math.floor(((on - startTime) / (interval * 1.0)))).intValue();
@@ -347,16 +366,24 @@ public class TotalsServiceImpl {
 
             onarr.set(start, onarr.get(start) + 1);
             offarr.set(end, offarr.get(end) + 1);
+            
+            if(t.getAge() < 18) {
+            	unadult_countonarr.set(start, unadult_countonarr.get(start) + 1);
+                unadult_countoffarr.set(end, unadult_countoffarr.get(end) + 1);
+            }
         }
         
         int count = 0;
+        int unadult_count = 0;
         for(int i = 0; i < blocks; i++) {
             if(i > 0){
                 count-=offarr.get(i - 1);
+                unadult_count-=unadult_countoffarr.get(i - 1);
             }
             count+=onarr.get(i);
-            countarr.set(i, count);
-            results.set(i,new InternetUsersCount(startTime+(interval*(i)), startTime+(interval*(i+1)), countarr.get(i)));
+            unadult_count+=unadult_countonarr.get(i);
+            
+            results.set(i,new InternetUsersCount(startTime+(interval*(i)), startTime+(interval*(i+1)), count, unadult_count));
         }
             
 
@@ -372,7 +399,7 @@ public class TotalsServiceImpl {
      * @throws Exception 
      * @since 0.0.1
      */
-    public List<AgeAndTimeResp> selectInternetAgeAndTime(Long startTime,Long endTime,int maxInternetTime, int interval, String barIds)
+    public List<AgeAndTimeResp> selectInternetAgeAndTime(Long startTime,Long endTime,int maxInternetTime, int interval, String barIds, int type)
             throws Exception {
 //        boolean fiilterTime = true;
 //        if(startTime==null||endTime==null)
@@ -399,7 +426,7 @@ public class TotalsServiceImpl {
 //            }
 //            tempTotalsByTime = temp;
 //        }
-        List<TotalByTime> tempTotalsByTime = filterByCondition(barIds, startTime, endTime, new ArrayList<InternetUserFilterBean>());
+        List<TotalByTime> tempTotalsByTime = filterByCondition(barIds, startTime, endTime, new ArrayList<InternetUserFilterBean>(), type);
         
         System.out.println(tempTotalsByTime.size());
         
@@ -483,8 +510,8 @@ public class TotalsServiceImpl {
     }
     }
     
-    public List<BarRelevantResp> getBarRelevantResp(long startTime,long endTime,String barIds, List<InternetUserFilterBean> ageTime) {
-		   List<TotalByTime> tempTotalsByTime = filterByCondition(barIds, startTime, endTime, ageTime);
+    public List<BarRelevantResp> getBarRelevantResp(long startTime,long endTime,String barIds, List<InternetUserFilterBean> ageTime, int type) {
+		   List<TotalByTime> tempTotalsByTime = filterByCondition(barIds, startTime, endTime, ageTime, type);
 		
 		   HashMap<String,BarRelevantResp> tempBars = new HashMap();
 		   for(Bars b:bars)
@@ -520,9 +547,9 @@ public class TotalsServiceImpl {
      * 获取网民年龄统计
      * @return
      */
-    public List<AgeCount> selectAgeCount(long startTime,long endTime,long interval,String barIds, List<InternetUserFilterBean> ageTime){
+    public List<AgeCount> selectAgeCount(long startTime,long endTime,long interval,String barIds, List<InternetUserFilterBean> ageTime, int type){
         //TODO: 
-        List<TotalByTime> safeTotals = filterByCondition(barIds, startTime, endTime, ageTime);
+        List<TotalByTime> safeTotals = filterByCondition(barIds, startTime, endTime, ageTime, type);
         
         List<AgeCount> results = new ArrayList<AgeCount>();
         int blocks = (int) (100/interval);
@@ -545,7 +572,7 @@ public class TotalsServiceImpl {
      * @return
      */
     
-    public List<Long> queryInternetTimeDistribution(long startTime, long endTime,String barIds, List<InternetUserFilterBean> ageTime){
+    public List<Long> queryInternetTimeDistribution(long startTime, long endTime,String barIds, List<InternetUserFilterBean> ageTime,int type){
         
         //7*24段从星期一开始
         List<Long> results = new ArrayList<Long>();
@@ -559,7 +586,7 @@ public class TotalsServiceImpl {
         
         startTime = startTime - startDate.getMinutes() * 60 - startDate.getSeconds();
         
-        List<InternetUsersCount> counts = selectAllByTimeSplit(startTime, endTime, 3600, barIds, ageTime);
+        List<InternetUsersCount> counts = selectAllByTimeSplit(startTime, endTime, 3600, barIds, ageTime, type);
         
         int index = (startDay - 1) * 24 + startHour;
         for (InternetUsersCount count: counts) {
@@ -579,9 +606,9 @@ public class TotalsServiceImpl {
 	 * @author zhangke
 	 * @since 0.0.5
 	 */
-    public HashMap<String,Integer> getFloatPersonByProvince(long startTime, long endTime,String barIds, List<InternetUserFilterBean> ageTime) {
+    public HashMap<String,Integer> getFloatPersonByProvince(long startTime, long endTime,String barIds, List<InternetUserFilterBean> ageTime,int type) {
     	
-    	List<TotalByTime> safeTotals = filterByCondition(barIds, startTime, endTime, ageTime);
+    	List<TotalByTime> safeTotals = filterByCondition(barIds, startTime, endTime, ageTime, type);
     	
         ProvinceFloatCountResp provinceFloatCountResp = new ProvinceFloatCountResp();
         ProvinceCount provinceCount = new ProvinceCount();

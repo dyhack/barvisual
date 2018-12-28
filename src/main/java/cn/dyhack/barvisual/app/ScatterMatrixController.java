@@ -102,9 +102,13 @@ public class ScatterMatrixController {
      * @since 0.0.4
      */
     @RequestMapping(value = "/internet_users", method = { RequestMethod.GET, RequestMethod.POST })
-    public List<InternetUsersCount> getUsersByTimeSplit(@RequestParam(required = true) long startTime,
-            @RequestParam(required = true) long endTime, @RequestParam(required = true) long interval,
-            @RequestParam(required = false) String barIds, @RequestParam(required = false) String ageTime) {
+    public List<InternetUsersCount> getUsersByTimeSplit( 
+    		@RequestParam(required = true) long startTime,
+            @RequestParam(required = true) long endTime, 
+            @RequestParam(required = true) long interval,
+            @RequestParam(required = false) String barIds,
+            @RequestParam(required = false, defaultValue = "0") int type,
+            @RequestParam(required = false) String ageTime) {
         if (barIds == null) {
             barIds = "";
         }
@@ -113,7 +117,7 @@ public class ScatterMatrixController {
         if (ageTime != null) {
             ageTimeT = JacksonConverter.decodeAsList(ageTime, InternetUserFilterBean.class);
         }
-        return totalsService.selectAllByTimeSplit(startTime, endTime, interval, barIds, ageTimeT);
+        return totalsService.selectAllByTimeSplit(startTime, endTime, interval, barIds, ageTimeT, type);
     }
     
     /**
@@ -129,12 +133,13 @@ public class ScatterMatrixController {
     		@RequestParam(required = false) Long startTime,
             @RequestParam(required = false) Long endTime,
             @RequestParam(required = false) String barIds,
+            @RequestParam(required = false, defaultValue = "0") int type,
             @RequestParam(required = true) int maxInternetTime,
             @RequestParam(required = true) int interval) throws Exception {
 	    	if (barIds == null) {
 	            barIds = "";
 	        }
-            return totalsService.selectInternetAgeAndTime(startTime, endTime, maxInternetTime, interval, barIds);
+            return totalsService.selectInternetAgeAndTime(startTime, endTime, maxInternetTime, interval, barIds, type);
 
     }
     
@@ -148,6 +153,7 @@ public class ScatterMatrixController {
     		@RequestParam(required = true) long startTime,
             @RequestParam(required = true) long endTime,
             @RequestParam(required = false) String barIds,
+            @RequestParam(required = false, defaultValue = "0") int type,
             @RequestParam(required = false) String ageTime) {
     	
     	if(barIds == null) {
@@ -159,7 +165,7 @@ public class ScatterMatrixController {
             ageTimeT = JacksonConverter.decodeAsList(ageTime, InternetUserFilterBean.class);
         }
         
-        return totalsService.getBarRelevantResp(startTime, endTime, barIds, ageTimeT);
+        return totalsService.getBarRelevantResp(startTime, endTime, barIds, ageTimeT, type);
     }
     
      /**
@@ -170,6 +176,7 @@ public class ScatterMatrixController {
 	    		@RequestParam(required = true) long startTime,
 	            @RequestParam(required = true) long endTime,
 	            @RequestParam(required = false) String barIds,
+	            @RequestParam(required = false, defaultValue = "0") int type,
 	            @RequestParam(required = false) String ageTime
     		)
     {
@@ -182,7 +189,7 @@ public class ScatterMatrixController {
             ageTimeT = JacksonConverter.decodeAsList(ageTime, InternetUserFilterBean.class);
         }
         
-        return totalsService.getFloatPersonByProvince(startTime, endTime, barIds, ageTimeT);
+        return totalsService.getFloatPersonByProvince(startTime, endTime, barIds, ageTimeT, type);
     }
    
     @RequestMapping(value= "/age-count",method = {RequestMethod.GET,RequestMethod.POST})
@@ -191,7 +198,8 @@ public class ScatterMatrixController {
 							            @RequestParam(required = true)long endTime,
 							            @RequestParam(required = true, defaultValue = "1")long interval,
 							            @RequestParam(required = false) String barIds,
-							            @RequestParam(required = false) String ageTime
+							            @RequestParam(required = false) String ageTime,
+							            @RequestParam(required = false, defaultValue = "0") int type
 							         ) {
         if(barIds == null) {
             barIds = "";
@@ -201,13 +209,14 @@ public class ScatterMatrixController {
         if(ageTime != null) {
             ageTimeT = JacksonConverter.decodeAsList(ageTime, InternetUserFilterBean.class);
         }
-        return totalsService.selectAgeCount(startTime,endTime,interval,barIds,ageTimeT);
+        return totalsService.selectAgeCount(startTime,endTime,interval,barIds,ageTimeT, type);
     }
     
     @RequestMapping(value= "/internet-time-distribution",method = {RequestMethod.GET,RequestMethod.POST})
     public List<Long> queryInternetTimeDistribution(
             @RequestParam(required = true) long startTime,
             @RequestParam(required = true) long endTime,
+            @RequestParam(required = false, defaultValue = "0") int type,
             @RequestParam(required = false) String barIds,
             @RequestParam(required = false) String ageTime) {
     	
@@ -219,7 +228,7 @@ public class ScatterMatrixController {
             ageTimeT = JacksonConverter.decodeAsList(ageTime, InternetUserFilterBean.class);
         }
         
-        return totalsService.queryInternetTimeDistribution(startTime, endTime,barIds,ageTimeT);
+        return totalsService.queryInternetTimeDistribution(startTime, endTime,barIds,ageTimeT, type);
     }
     
     /**
@@ -238,6 +247,7 @@ public class ScatterMatrixController {
     		@RequestParam(required = true) long startTime,
             @RequestParam(required = true) long endTime,
             @RequestParam(required = false) String barIds,
+            @RequestParam(required = false, defaultValue = "0") int type,
             @RequestParam(required = false) String ageTime,
             HttpServletResponse response)
     {   
